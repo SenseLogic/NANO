@@ -26,6 +26,10 @@ The first character specifies the target file format :
 
 The next characters specify the target image width, or the name of a predefined width list :
 
+*   **n** : 80
+*   **n2** : 80, 160
+*   **n3** : 80, 160, 240
+*   **n4** : 80, 160, 240, 320
 *   **t** : 160
 *   **t2** : 160, 320
 *   **t3** : 160, 320, 480
@@ -53,7 +57,7 @@ The next characters specify the target image width, or the name of a predefined 
 
 Optionally, a after **@**, a generation quality array can be provided.
 
-Those letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
+Those letters stand for **N**ano, **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
 
 ## Arguments
 

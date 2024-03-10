@@ -87,6 +87,10 @@ Get-ChildItem -Path $source_base_folder_path -Filter "*.*.*" -Recurse | ForEach-
 
         $target_width_array = switch ( $target_width_format )
         {
+            "n" { @( 80 ) }
+            "n2" { @( 80, 160 ) }
+            "n3" { @( 80, 160, 240 ) }
+            "n4" { @( 80, 160, 240, 320 ) }
             "t" { @( 160 ) }
             "t2" { @( 160, 320 ) }
             "t3" { @( 160, 320, 480 ) }
