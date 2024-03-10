@@ -8,7 +8,7 @@ Bulk image resizer.
 
 Nano generates one or several variants of the source image into a target folder.
 
-The source image file names must have a nano-dedicated suffix :
+The source image file names must have a conversion suffix :
 
 *   image.**j960**.jpg => image.960.jpg
 *   image.**jl**.png => image.960.jpg
