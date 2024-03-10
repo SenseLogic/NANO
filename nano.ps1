@@ -2,7 +2,8 @@ param(
     $source_base_folder_path,
     $target_base_folder_path,
     $quality_list,
-    $image_magick_tool_path
+    $image_magick_tool_path,
+    $mode
     )
 
 if ( -not ( Test-Path $target_base_folder_path ) )
@@ -25,9 +26,13 @@ function GenerateJpgImage
 
     $target_file_path = "$target_file_path.$width.jpg"
 
-    if ( -not ( Test-Path $target_file_path ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime ) {
-        echo $target_file_path
+    if ( ( $mode -ne "keep" ) -or ( -not ( Test-Path $target_file_path ) ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime ) {
+        echo "Writing file : $target_file_path"
         & $image_magick_tool_path $source_file_path -background white -alpha remove -alpha off -resize "${Width}x" -interlace Plane -quality $quality -strip $target_file_path
+    }
+    else
+    {
+        echo "Keeping file : $target_file_path"
     }
 }
 
@@ -41,21 +46,22 @@ function GeneratePngImage
 
     $target_file_path = "$target_file_path.$width.png"
 
-    if ( -not ( Test-Path $target_file_path ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime )
+    if ( ( $mode -ne "keep" ) -or ( -not ( Test-Path $target_file_path ) ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime )
     {
-        echo $target_file_path
+        echo "Writing file : $target_file_path"
         & $image_magick_tool_path $source_file_path -resize "${Width}x" -strip $target_file_path
+    }
+    else
+    {
+        echo "Keeping file : $target_file_path"
     }
 }
 
-if ( -not ( Test-Path $target_base_folder_path ) )
-{
-    New-Item -ItemType Directory -Path $target_base_folder_path
-}
+echo "Reading folder : $source_base_folder_path"
 
 Get-ChildItem -Path $source_base_folder_path -Filter "*.*.*" -Recurse | ForEach-Object {
 
-    $file_name_part_array = $_.Name.Split( '.' )
+    $file_name_part_array = $_.Name.Split( "." )
 
     if ( $file_name_part_array.length -eq 3 )
     {
@@ -108,7 +114,10 @@ Get-ChildItem -Path $source_base_folder_path -Filter "*.*.*" -Recurse | ForEach-
             New-Item -ItemType Directory -Force -Path $target_folder_path | Out-Null
         }
 
+        $source_file_path = $_.FullName
         $target_file_path = Join-Path $target_folder_path ( $_.BaseName -replace "\.$target_format$", "" )
+
+        echo "Reading file : $source_file_path"
 
         foreach ( $width_index in 0..( $width_array.Count - 1 ) )
         {

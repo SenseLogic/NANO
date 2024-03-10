@@ -46,13 +46,20 @@ The next characters specify the target image width, explicitely or using a prede
 
 The above letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge and **U**ltra.
 
-The conversion is skipped if the target image file is already newer than the source image file.
-
 ## Sample
 
 ```csh
-powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert"
+powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert" skip
 ```
+
+Generate image variants in the OUT folder from the image of the IN folder, keeping existing target image files if they are newer than their source image file.
+
+
+```csh
+powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert" overwrite
+```
+
+Generate image variants in the OUT folder from the image of the IN folder, overwriting existing target image files.
 
 ## Version
 
