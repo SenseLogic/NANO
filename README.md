@@ -2,7 +2,7 @@
 
 # Nano
 
-Bulk image resizer.
+Image variant generator.
 
 ## Description
 
@@ -52,14 +52,18 @@ The above letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig,
 powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert" skip
 ```
 
-Generate image variants in the OUT folder from the image of the IN folder, keeping existing target image files if they are newer than their source image file.
+Generate image variants, keeping existing target image files if they are newer than their source image file.
 
 
 ```csh
 powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert" overwrite
 ```
 
-Generate image variants in the OUT folder from the image of the IN folder, overwriting existing target image files.
+Generate image variants, overwriting existing target image files.
+
+## Dependencies
+
+*   ImageMagick convert
 
 ## Version
 
