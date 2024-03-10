@@ -21,7 +21,7 @@ The first character specifies the target file format :
 *   **j** : .jpg
 *   **p** : .png
 
-The next characters specify the target image width, explicitely or using a predefined width list code :
+The next characters specify the target image width, or the name of a predefined width list :
 
 *   **t** : 160
 *   **t2** : 160, 320
