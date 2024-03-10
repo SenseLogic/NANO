@@ -10,39 +10,39 @@ Nano generates one or several variants of the source image into a target folder.
 
 The source image file names must have a nano-dedicated suffix :
 
-*   image.j960.jpg => image.960.jpg
-*   image.jl.png => image.960.jpg
-*   image.pt3.png => image.160.png, image.320.png, image.480.png
+*   image.*j960*.jpg => image.960.jpg
+*   image.*jl*.png => image.960.jpg
+*   image.*pt3*.png => image.160.png, image.320.png, image.480.png
 
 The first character specifies the target file format :
 
-*   j : .jpg
-*   p : .png
+*   *j* : .jpg
+*   *p* : .png
 
 The next characters specify the target image width, explicitely or using a predefined width list code :
 
-*   t : 160
-*   t2 : 160, 320
-*   t3 : 160, 320, 480
-*   t4 : 160, 320, 480, 640
-*   s : 320
-*   s2 : 320, 640
-*   s3 : 320, 640, 960
-*   s4 : 320, 640, 960, 1280
-*   m : 640
-*   m2 : 640, 1280
-*   m3 : 640, 1280, 1920
-*   m4 : 640, 1280, 1920, 2560
-*   l : 960
-*   l2 : 960, 1920
-*   l3 : 960, 1920, 2880
-*   l4 : 960, 1920, 2880, 3840
-*   b : 1280
-*   b2 : 1280, 2560
-*   b3 : 1280, 2560, 3840
-*   h : 1920
-*   h2 : 1920, 3840
-*   u : 3840
+*   *t* : 160
+*   *t2* : 160, 320
+*   *t3* : 160, 320, 480
+*   *t4* : 160, 320, 480, 640
+*   *s* : 320
+*   *s2* : 320, 640
+*   *s3* : 320, 640, 960
+*   *s4* : 320, 640, 960, 1280
+*   *m* : 640
+*   *m2* : 640, 1280
+*   *m3* : 640, 1280, 1920
+*   *m4* : 640, 1280, 1920, 2560
+*   *l* : 960
+*   *l2* : 960, 1920
+*   *l3* : 960, 1920, 2880
+*   *l4* : 960, 1920, 2880, 3840
+*   *b* : 1280
+*   *b2* : 1280, 2560
+*   *b3* : 1280, 2560, 3840
+*   *h* : 1920
+*   *h2* : 1920, 3840
+*   *u* : 3840
 
 The conversion is skipped if the target image file is already newer than the source image file.
 
