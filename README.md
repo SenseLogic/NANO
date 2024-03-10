@@ -48,7 +48,7 @@ The next characters specify the target image width, or the name of a predefined 
 *   **f2** : 1920, 3840
 *   **u** : 3840
 
-The above letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
+Those letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
 
 ## Arguments
 
