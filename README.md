@@ -8,7 +8,13 @@ Image variant generator.
 
 Nano generates source image variants in a target folder.
 
-The source image file names must have a special suffix just before their extension :
+The source image file names must have a special suffix just before their extension.
+
+For instance :
+
+*   "image.**j960**.jpg" generates "image.960.jpg"
+*   "image.**jl**.png" generates "image.960.jpg"
+*   "image.**pt3**.png" generates "image.160.png", "image.320.png", "image.480.png"
 
 The first character specifies the target file format :
 
@@ -41,12 +47,6 @@ The next characters specify the target image width, explicitely or using a prede
 *   **u** : 3840
 
 The above letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge and **U**ltra.
-
-For instance :
-
-*   "image.**j960**.jpg" generates "image.960.jpg"
-*   "image.**jl**.png" generates "image.960.jpg"
-*   "image.**pt3**.png" generates "image.160.png", "image.320.png", "image.480.png"
 
 ## Sample
 
