@@ -100,8 +100,10 @@ Get-ChildItem -Path $source_base_folder_path -Filter "*.*.*" -Recurse | ForEach-
             "b" { 1280 }
             "b2" { 1280, 2560 }
             "b3" { 1280, 2560, 3840 }
-            "h" { 1920 }
-            "h2" { 1920, 3840 }
+            "h" { 1600 }
+            "h2" { 1600, 3200 }
+            "f" { 1920 }
+            "f2" { 1920, 3840 }
             "u" { 3840 }
             Default { [int]$target_width_format }
         }
