@@ -69,14 +69,11 @@ Get-ChildItem -Path $source_base_folder_path -Filter "*.*.*" -Recurse | ForEach-
         $target_extension_format = $target_format.Substring( 0, 1 )
         $target_width_format = $target_format.Substring( 1 )
 
-        $width_array = @()
-        $target_file_extension = ""
-
         $target_file_extension = switch ( $target_extension_format )
         {
             "j" { "jpg" }
             "p" { "png" }
-            default { Continue }
+            default { "" }
         }
 
         $width_array = switch ( $target_width_format )
@@ -108,31 +105,34 @@ Get-ChildItem -Path $source_base_folder_path -Filter "*.*.*" -Recurse | ForEach-
             Default { [int]$target_width_format }
         }
 
-        $relative_file_path = $_.DirectoryName.Substring( $source_base_folder_path.Length )
-        $target_folder_path = Join-Path $target_base_folder_path $relative_file_path
-
-        if ( -not ( Test-Path $target_folder_path ) )
+        if ( $target_extension_format -ne "" )
         {
-            New-Item -ItemType Directory -Force -Path $target_folder_path | Out-Null
-        }
+            $relative_file_path = $_.DirectoryName.Substring( $source_base_folder_path.Length )
+            $target_folder_path = Join-Path $target_base_folder_path $relative_file_path
 
-        $source_file_path = $_.FullName
-        $target_file_path = Join-Path $target_folder_path ( $_.BaseName -replace "\.$target_format$", "" )
-
-        echo "Reading file : $source_file_path"
-
-        foreach ( $width_index in 0..( $width_array.Count - 1 ) )
-        {
-            $width = $width_array[ $width_index ]
-            $quality = $quality_array[ $width_index % $quality_array.Count ]
-
-            if ( $target_file_extension -eq "jpg" )
+            if ( -not ( Test-Path $target_folder_path ) )
             {
-                GenerateJpgImage -source_file_path $_.FullName -target_file_path $target_file_path -width $width -quality $quality
+                New-Item -ItemType Directory -Force -Path $target_folder_path | Out-Null
             }
-            elseif ( $target_file_extension -eq "png" )
+
+            $source_file_path = $_.FullName
+            $target_file_path = Join-Path $target_folder_path ( $_.BaseName -replace "\.$target_format$", "" )
+
+            echo "Reading file : $source_file_path"
+
+            foreach ( $width_index in 0..( $width_array.Count - 1 ) )
             {
-                GeneratePngImage -source_file_path $_.FullName -target_file_path $target_file_path -width $width
+                $width = $width_array[ $width_index ]
+                $quality = $quality_array[ $width_index % $quality_array.Count ]
+
+                if ( $target_file_extension -eq "jpg" )
+                {
+                    GenerateJpgImage -source_file_path $_.FullName -target_file_path $target_file_path -width $width -quality $quality
+                }
+                elseif ( $target_file_extension -eq "png" )
+                {
+                    GeneratePngImage -source_file_path $_.FullName -target_file_path $target_file_path -width $width
+                }
             }
         }
     }
