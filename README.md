@@ -6,7 +6,7 @@ Bulk image resizer.
 
 ## Description
 
-Nano generates one or several variants of the source image into a target folder.
+Nano generates one or several variants of the source images into a target folder.
 
 The source image file names must have a conversion suffix :
 
