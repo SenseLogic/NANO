@@ -2,8 +2,8 @@ param(
     $source_base_folder_path,
     $target_base_folder_path,
     $quality_list,
-    $image_magick_tool_path,
-    $mode
+    $generation_tool_path,
+    $generation_mode
     )
 
 if ( -not ( Test-Path $target_base_folder_path ) )
@@ -26,9 +26,9 @@ function GenerateJpgImage
 
     $target_file_path = "$target_file_path.$width.jpg"
 
-    if ( ( $mode -ne "keep" ) -or ( -not ( Test-Path $target_file_path ) ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime ) {
+    if ( ( $generation_mode -ne "keep" ) -or ( -not ( Test-Path $target_file_path ) ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime ) {
         echo "Writing file : $target_file_path"
-        & $image_magick_tool_path $source_file_path -background white -alpha remove -alpha off -resize "${Width}x" -interlace Plane -quality $quality -strip $target_file_path
+        & $generation_tool_path $source_file_path -background white -alpha remove -alpha off -resize "${Width}x" -interlace Plane -quality $quality -strip $target_file_path
     }
     else
     {
@@ -46,10 +46,10 @@ function GeneratePngImage
 
     $target_file_path = "$target_file_path.$width.png"
 
-    if ( ( $mode -ne "keep" ) -or ( -not ( Test-Path $target_file_path ) ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime )
+    if ( ( $generation_mode -ne "keep" ) -or ( -not ( Test-Path $target_file_path ) ) -or ( Get-Item $source_file_path ).LastWriteTime -gt ( Get-Item $target_file_path ).LastWriteTime )
     {
         echo "Writing file : $target_file_path"
-        & $image_magick_tool_path $source_file_path -resize "${Width}x" -strip $target_file_path
+        & $generation_tool_path $source_file_path -resize "${Width}x" -strip $target_file_path
     }
     else
     {

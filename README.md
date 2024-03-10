@@ -48,6 +48,14 @@ The next characters specify the target image width, or the name of a predefined 
 
 The above letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge and **U**ltra.
 
+## Arguments
+
+*   Source folder path
+*   Target folder path
+*   JPEG quality array
+*   Generation tool path
+*   Generation mode : skip | overwrite
+
 ## Sample
 
 ```csh
