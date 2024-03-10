@@ -44,6 +44,8 @@ The next characters specify the target image width, explicitely or using a prede
 *   **h2** : 1920, 3840
 *   **u** : 3840
 
+The above letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge and **U**ltra.
+
 The conversion is skipped if the target image file is already newer than the source image file.
 
 ## Sample
