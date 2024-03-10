@@ -12,9 +12,12 @@ The source image file names must have a special suffix just before their extensi
 
 For instance :
 
-*   "image.**j960**.jpg" generates "image.960.jpg"
 *   "image.**jl**.png" generates "image.960.jpg"
+*   "image.**j960**.png" generates "image.960.jpg"
+*   "image.**j960@90**.png" generates "image.960.jpg" at 90% quality
 *   "image.**pt3**.png" generates "image.160.png", "image.320.png", "image.480.png"
+*   "image.**p160,320,480**.png" generates "image.160.png", "image.320.png", "image.480.png"
+*   "image.**p160,320,480@90,70,60**.png" generates "image.160.png" at 90% quality, "image.320.png" at 70% quality, "image.480.png" at 60% quality
 
 The first character specifies the target file format :
 
@@ -48,13 +51,15 @@ The next characters specify the target image width, or the name of a predefined 
 *   **f2** : 1920, 3840
 *   **u** : 3840
 
+Optionally, a after **@**, a generation quality array can be provided.
+
 Those letters stand for **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
 
 ## Arguments
 
 *   Source folder path
 *   Target folder path
-*   JPEG quality array
+*   Generation quality array
 *   Generation tool path
 *   Generation mode : skip | overwrite
 
