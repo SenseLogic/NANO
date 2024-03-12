@@ -1,2 +1,2 @@
-powershell -NoProfile -ExecutionPolicy Bypass -File "..\nano.ps1" IN OUT 90,80,70,60 "%TOOL%\IMAGE_MAGICK\convert" overwrite
+..\nano --quality 90,80,70,60 --default am@10.al4 --definition bg s16_9.am@10.al4 --tool "%TOOL%\IMAGE_MAGICK\convert" IN OUT
 pause

@@ -8,24 +8,33 @@ Image variant generator.
 
 Nano generates source image variants in a target folder.
 
-The source image file names must have a special suffix just before their extension.
+The source image file names can have one or several commands before their extension.
 
 For instance :
 
-*   "image.**jl**.png" generates "image.960.jpg"
-*   "image.**j960**.png" generates "image.960.jpg"
-*   "image.**j960@90**.png" generates "image.960.jpg" at 90% quality
-*   "image.**pt3**.png" generates "image.160.png", "image.320.png", "image.480.png"
-*   "image.**p160,320,480**.png" generates "image.160.png", "image.320.png", "image.480.png"
-*   "image.**p160,320,480@90,70,60**.png" generates "image.160.png" at 90% quality, "image.320.png" at 70% quality, "image.480.png" at 60% quality
+*   "image.**jl**.png" generates "image.png.960.jpg"
+*   "image.**j960**.png" generates "image.png.960.jpg"
+*   "image.**j960@90**.png" generates "image.png.960.jpg" at 90% quality
+*   "image.**jm@10.jl4**.png" generates "image.png.480.jpg", "image.png.960.jpg", "image.png.1920.jpg", "image.png.2880.jpg", "image.png.3840.jpg"
+*   "image.**pt3**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
+*   "image.**p160,320,480**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
+*   "image.**p160,320,480@90,70,60**.png" generates "image.png.160.png" at 90% quality, "image.png.320.png" at 70% quality, "image.png.480.png" at 60% quality
 
-The first character specifies the target file format :
+The default command list is used if none was provided.
 
-*   **j** : .jpg
-*   **p** : .png
+The first character of a command can be :
 
-The next characters specify the target image width, or the name of a predefined width list :
+*   **@** : use default command list
+*   **@** <definition name> : use named command list
+*   **s** <surface ratio> : set surface ratio
+*   **a** : generate .avif files
+*   **j** : generate .jpg files
+*   **p** : generate .png files
+*   **w** : generate .webp files
 
+For image generation commands, the next characters specify the target image widths :
+
+*   <width>,<width>,...
 *   **n** : 80
 *   **n2** : 80, 160
 *   **n3** : 80, 160, 240
@@ -55,32 +64,51 @@ The next characters specify the target image width, or the name of a predefined 
 *   **f2** : 1920, 3840
 *   **u** : 3840
 
-Optionally, a after **@**, a generation quality array can be provided.
+Those letters stand for **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
 
-Those letters stand for **N**ano, **T**iny, **S**mall, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
+A target image quality list can be added after **@**.
 
-## Arguments
+## Installation
 
-*   Source folder path
-*   Target folder path
-*   Generation quality array
-*   Generation tool path
-*   Generation mode : skip | overwrite
+Install the [DMD 2 compiler](https://dlang.org/download.html) (using the MinGW setup option on Windows).
+
+Build the executable with the following command line :
+
+```bash
+dmd -m64 nano.d
+```
+
+## Command line
+
+```
+nano [<option> ...] <input folder path> <output folder path>
+```
+
+### Options
+
+```
+--surface <target surface ratio>
+--quality <target quality list>
+--default <default command list>
+--definition <definition name> <named command list>
+--tool <tool path>
+--keep : keep existing target images if they are newer than their source image.
+```
 
 ## Sample
 
 ```csh
-powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert" skip
+nano -surface 16_9 --quality "90,80,70,60" --tool "imagemagick/convert" IN/ OUT/
 ```
 
-Generate image variants, keeping existing target image files if they are newer than their source image file.
-
+Generate image variants using the provided target image surface ratio, overwriting existing target images.
 
 ```csh
-powershell -NoProfile -ExecutionPolicy Bypass -File "nano.ps1" IN OUT "90 80 70 60" "imagemagick\convert" overwrite
+nano -surface 16_9 --quality "90,80,70,60" --tool "imagemagick/convert" --keep IN/ OUT/
 ```
 
-Generate image variants, overwriting existing target image files.
+Generate image variants using the provided target image surface ratio, keeping existing target images if they are newer than their source image.
+
 
 ## Dependencies
 
