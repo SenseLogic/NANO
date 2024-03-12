@@ -25,8 +25,8 @@ The default command list is used if none was provided.
 The first character of a command can be :
 
 *   **@** : use default command list
-*   **@** <definition name> : use named command list
-*   **s** <surface ratio> : set surface ratio
+*   **@** `<definition name>` : use named command list
+*   **s** `<surface ratio>` : set surface ratio
 *   **a** : generate .avif files
 *   **j** : generate .jpg files
 *   **p** : generate .png files
@@ -34,7 +34,7 @@ The first character of a command can be :
 
 For image generation commands, the next characters specify the target image widths :
 
-*   <width>,<width>,...
+*   `<width>`,`<width>`,...
 *   **n** : 80
 *   **n2** : 80, 160
 *   **n3** : 80, 160, 240
@@ -81,17 +81,17 @@ dmd -m64 nano.d
 ## Command line
 
 ```
-nano [<option> ...] <input folder path> <output folder path>
+nano [`<option>` ...] `<input folder path>` `<output folder path>`
 ```
 
 ### Options
 
 ```
---surface <target surface ratio>
---quality <target quality list>
---default <default command list>
---definition <definition name> <named command list>
---tool <tool path>
+--surface `<target surface ratio>`
+--quality `<target quality list>`
+--default `<default command list>`
+--definition `<definition name>` `<named command list>`
+--tool `<tool path>`
 --keep : keep existing target images if they are newer than their source image.
 ```
 
