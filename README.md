@@ -87,11 +87,11 @@ nano [`<option>` ...] `<input folder path>` `<output folder path>`
 ### Options
 
 ```
---surface `<target surface ratio>`
---quality `<target quality list>`
---default `<default command list>`
---definition `<definition name>` `<named command list>`
---tool `<tool path>`
+--surface <target surface ratio>
+--quality <target quality list>
+--default <default command list>
+--definition <definition name> <named command list>
+--tool <tool path>
 --keep : keep existing target images if they are newer than their source image.
 ```
 
