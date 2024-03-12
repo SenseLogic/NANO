@@ -98,13 +98,13 @@ nano [`<option>` ...] `<input folder path>` `<output folder path>`
 ## Sample
 
 ```csh
-nano -surface 16_9 --quality "90,80,70,60" --tool "imagemagick/convert" IN/ OUT/
+nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" IN OUT
 ```
 
 Generate image variants using the provided target image surface ratio, overwriting existing target images.
 
 ```csh
-nano -surface 16_9 --quality "90,80,70,60" --tool "imagemagick/convert" --keep IN/ OUT/
+nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" --keep IN OUT
 ```
 
 Generate image variants using the provided target image surface ratio, keeping existing target images if they are newer than their source image.
