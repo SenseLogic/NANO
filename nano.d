@@ -28,7 +28,7 @@ import std.path : absolutePath;
 import std.process : executeShell;
 import std.range : empty;
 import std.stdio : writeln, File;
-import std.string : indexOf, lastIndexOf, replace, split, startsWith;
+import std.string : endsWith, indexOf, lastIndexOf, replace, split, startsWith;
 
 // -- VARIABLES
 
@@ -615,13 +615,17 @@ void main(
     {
         SourceFolderPath = argument_array[ 0 ].GetLogicalPath();
         TargetFolderPath = argument_array[ 1 ].GetLogicalPath();
+    }
 
+    if ( SourceFolderPath.GetLogicalPath().endsWith( '/' )
+         && TargetFolderPath.GetLogicalPath().endsWith( '/' ) )
+    {
         ProcessFiles();
     }
     else
     {
         writeln( "Usage :" );
-        writeln( "    nano [options] SOURCE_FOLDER/ TARGET_FOLDER/" );
+        writeln( "    nano [options] <source folder path> <target folder path>" );
 
         Abort( "Invalid arguments : " ~ argument_array.to!string() );
     }

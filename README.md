@@ -32,9 +32,12 @@ The first character of a command can be :
 *   **p** : generate .png files
 *   **w** : generate .webp files
 
-For image generation commands, the next characters specify the target image widths :
+For image generation commands, the next characters specify the target width list :
 
 *   `<width>`,`<width>`,...
+
+Alternatively, a named target width list can be used :
+
 *   **n** : 80
 *   **n2** : 80, 160
 *   **n3** : 80, 160, 240
@@ -47,6 +50,10 @@ For image generation commands, the next characters specify the target image widt
 *   **s2** : 320, 640
 *   **s3** : 320, 640, 960
 *   **s4** : 320, 640, 960, 1280
+*   **c** : 480
+*   **c2** : 480, 960
+*   **c3** : 480, 960, 1440
+*   **c4** : 480, 960, 1440, 1920
 *   **m** : 640
 *   **m2** : 640, 1280
 *   **m3** : 640, 1280, 1920
@@ -64,9 +71,9 @@ For image generation commands, the next characters specify the target image widt
 *   **f2** : 1920, 3840
 *   **u** : 3840
 
-Those letters stand for **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull and **U**ltra.
+Those letters stand for : **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull, **U**ltra.
 
-A target image quality list can be added after **@**.
+A custom target quality list can also be specified after **@**.
 
 ## Installation
 
@@ -81,7 +88,7 @@ dmd -m64 nano.d
 ## Command line
 
 ```
-nano [`<option>` ...] `<input folder path>` `<output folder path>`
+nano [`<option>` ...] `<source folder path>` `<target folder path>`
 ```
 
 ### Options
@@ -98,13 +105,13 @@ nano [`<option>` ...] `<input folder path>` `<output folder path>`
 ## Sample
 
 ```csh
-nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" IN OUT
+nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" IN/ OUT/
 ```
 
 Generate image variants using the provided target image surface ratio, overwriting existing target images.
 
 ```csh
-nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" --keep IN OUT
+nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" --keep IN/ OUT/
 ```
 
 Generate image variants using the provided target image surface ratio, keeping existing target images if they are newer than their source image.
