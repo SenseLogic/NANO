@@ -6,7 +6,41 @@ Image variant generator.
 
 ## Description
 
-Nano generates source image variants in a target folder.
+Nano generates image variants in different sizes and file formats.
+
+## Installation
+
+Install the [DMD 2 compiler](https://dlang.org/download.html) (using the MinGW setup option on Windows).
+
+Build the executable with the following command line :
+
+```bash
+dmd -m64 nano.d
+```
+
+## Command line
+
+```
+nano [`<option>` ...] `<source folder path>` `<target folder path>`
+```
+
+### Options
+
+```
+--surface-ratio <surface ratio>
+--quality-list <quality list>
+--width-list <name> <width list>
+--command-list <name> <command list>
+--default-command-list <default command list>
+--image-name-format <image name format>
+--tool-path <tool path>
+--recursive : process subfolders too
+--keep : keep existing target images if they are newer than their source image
+```
+
+## Usage
+
+### Commands
 
 The source image file names can have one or several commands before their extension.
 
@@ -36,7 +70,9 @@ For image generation commands, the next characters specify the target width list
 
 *   `<width>`,`<width>`,...
 
-Alternatively, a named target width list can be used :
+Alternatively, a named target width list can be used.
+
+Here are those defined by default :
 
 *   **n** : 80
 *   **n2** : 80, 160
@@ -75,47 +111,32 @@ Those letters stand for : **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium
 
 A custom target quality list can also be specified after **@**.
 
-## Installation
+### Image names
 
-Install the [DMD 2 compiler](https://dlang.org/download.html) (using the MinGW setup option on Windows).
+The target image name format can be specified using the following letters :
 
-Build the executable with the following command line :
+*   **{l}** : source image label
+*   **{e}** : source image extension
+*   **{w}** : target image width
+*   **{q}** : target image quality
+*   **{x}** : target image extension
 
-```bash
-dmd -m64 nano.d
-```
+The default target image name is : **{n}.{e}.{w}.{x}**
 
-## Command line
-
-```
-nano [`<option>` ...] `<source folder path>` `<target folder path>`
-```
-
-### Options
-
-```
---surface <target surface ratio>
---quality <target quality list>
---default <default command list>
---definition <definition name> <named command list>
---tool <tool path>
---keep : keep existing target images if they are newer than their source image.
-```
-
-## Sample
+## Samples
 
 ```csh
-nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" IN/ OUT/
+nano --default-command-list s16_9.a1920@70 --image-name-format @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
-
-Generate image variants using the provided target image surface ratio, overwriting existing target images.
 
 ```csh
-nano --quality 90,80,70,60 --default s16_9.am@10.al4 --definition bg s16_9.am@10.al4 --tool "convert" --keep IN/ OUT/
+nano --quality-list 75,70,65,60 --default-command-list s16_9.am@10.al4 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
-Generate image variants using the provided target image surface ratio, keeping existing target images if they are newer than their source image.
-
+```csh
+nano --quality-list 80 --width-list m5 640,1280,1920,2560,3200 --command-list m5 ac@10.am5 --command-list sm5 s16_9.ac@10.am5
+     --default-command-list @m5 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+```
 
 ## Dependencies
 

@@ -33,18 +33,21 @@ import std.string : endsWith, indexOf, lastIndexOf, replace, split, startsWith;
 // -- VARIABLES
 
 bool
-    KeepOptionIsEnabled;
+    KeepOptionIsEnabled,
+    RecursiveOptionIsEnabled;
 double
     TargetSurfaceRatio;
 string
     ToolPath,
     SourceFolderPath,
-    TargetFolderPath;
+    TargetFolderPath,
+    TargetFileNameFormat;
 string[]
     DefaultCommandArray,
     TargetQualityArray;
 string[][ string ]
-    CommandArrayByNameMap;
+    CommandArrayByNameMap,
+    WidthArrayByNameMap;
 
 // -- FUNCTIONS
 
@@ -189,7 +192,7 @@ string GetFileExtension(
 
 // ~~
 
-string[] GetCommandArrayByName(
+string[] GetCommandArray(
     string name
     )
 {
@@ -250,42 +253,33 @@ string[] GetTargetWidthArray(
     string target_width_format
     )
 {
-    switch ( target_width_format )
+    if ( target_width_format in WidthArrayByNameMap )
     {
-        case "n" : return [ "80" ];
-        case "n2" : return [ "80", "160" ];
-        case "n3" : return [ "80", "160", "240" ];
-        case "n4" : return [ "80", "160", "240", "320" ];
-        case "t" : return [ "160" ];
-        case "t2" : return [ "160", "320" ];
-        case "t3" : return [ "160", "320", "480" ];
-        case "t4" : return [ "160", "320", "480", "640" ];
-        case "s" : return [ "320" ];
-        case "s2" : return [ "320", "640" ];
-        case "s3" : return [ "320", "640", "960" ];
-        case "s4" : return [ "320", "640", "960", "1280" ];
-        case "c" : return [ "480" ];
-        case "c2" : return [ "480", "960" ];
-        case "c3" : return [ "480", "960", "1440" ];
-        case "c4" : return [ "480", "960", "1440", "1920" ];
-        case "m" : return [ "640" ];
-        case "m2" : return [ "640", "1280" ];
-        case "m3" : return [ "640", "1280", "1920" ];
-        case "m4" : return [ "640", "1280", "1920", "2560" ];
-        case "l" : return [ "960" ];
-        case "l2" : return [ "960", "1920" ];
-        case "l3" : return [ "960", "1920", "2880" ];
-        case "l4" : return [ "960", "1920", "2880", "3840" ];
-        case "b" : return [ "1280" ];
-        case "b2" : return [ "1280", "2560" ];
-        case "b3" : return [ "1280", "2560", "3840" ];
-        case "h" : return [ "1600" ];
-        case "h2" : return [ "1600", "3200" ];
-        case "f" : return [ "1920" ];
-        case "f2" : return [ "1920", "3840" ];
-        case "u" : return [ "3840" ];
-        default : return target_width_format.split( ',' );
+        return WidthArrayByNameMap[ target_width_format ];
     }
+    else
+    {
+        return target_width_format.split( ',' );
+    }
+}
+
+// ~~
+
+string GetTargetFileName(
+    string source_file_label,
+    string source_file_extension,
+    string target_width,
+    string target_quality,
+    string target_file_extension
+    )
+{
+    return
+        TargetFileNameFormat
+            .replace( "{l}", source_file_label )
+            .replace( "{e}", source_file_extension )
+            .replace( "{w}", target_width )
+            .replace( "{q}", target_quality )
+            .replace( "{x}", target_file_extension );
 }
 
 // ~~
@@ -384,8 +378,9 @@ void WriteImage(
 
 void ProcessFile(
     string source_file_path,
+    string source_file_label,
+    string source_file_extension,
     string source_folder_path,
-    string target_file_name,
     string[] command_array
     )
 {
@@ -399,6 +394,7 @@ void ProcessFile(
         command,
         target_extension_format,
         target_file_extension,
+        target_file_name,
         target_file_path,
         target_folder_path,
         target_quality,
@@ -428,7 +424,7 @@ void ProcessFile(
         {
             command_array
                 = command_array[ 0 .. command_index ]
-                  ~ GetCommandArrayByName( command[ 1 .. $ ] )
+                  ~ GetCommandArray( command[ 1 .. $ ] )
                   ~ command_array[ command_index + 1 .. $ ];
 
             --command_index;
@@ -461,11 +457,20 @@ void ProcessFile(
                     target_folder_path.mkdirRecurse();
                 }
 
-                target_file_path = target_folder_path ~ target_file_name;
-
                 foreach ( target_width_index, target_width; target_width_array )
                 {
                     target_quality = target_quality_array[ target_width_index % target_quality_array.length ];
+
+                    target_file_name
+                        = GetTargetFileName(
+                              source_file_label,
+                              source_file_extension,
+                              target_width,
+                              target_quality,
+                              target_file_extension
+                              );
+
+                    target_file_path = target_folder_path ~ target_file_name;
 
                     WriteImage(
                         source_file_path,
@@ -496,12 +501,23 @@ void ProcessFiles(
     string[]
         source_file_name_part_array,
         command_array;
+    SpanMode
+        span_mode;
 
     writeln( "Reading folder : ", SourceFolderPath );
 
     try
     {
-        foreach ( source_folder_entry; dirEntries( SourceFolderPath, SpanMode.depth ) )
+        if ( RecursiveOptionIsEnabled )
+        {
+            span_mode = SpanMode.breadth;
+        }
+        else
+        {
+            span_mode = SpanMode.shallow;
+        }
+
+        foreach ( source_folder_entry; dirEntries( SourceFolderPath, span_mode ) )
         {
             if ( source_folder_entry.isFile )
             {
@@ -523,12 +539,11 @@ void ProcessFiles(
                          || source_file_extension == ".png"
                          || source_file_extension == ".webp" )
                     {
-                        target_file_name = source_file_label ~ source_file_extension;
-
                         ProcessFile(
                             source_file_path,
                             source_folder_path,
-                            target_file_name,
+                            source_file_label,
+                            source_file_extension,
                             command_array
                             );
                     }
@@ -556,10 +571,45 @@ void main(
     argument_array = argument_array[ 1 .. $ ];
 
     TargetSurfaceRatio = 0.0;
-    TargetQualityArray = [ "90", "80", "70", "60" ];
+    TargetQualityArray = [ "80" ];
+    TargetFileNameFormat = "{n}.{e}.{w}.{x}";
     DefaultCommandArray = null;
+    WidthArrayByNameMap = null;
+    WidthArrayByNameMap[ "n" ] = [ "80" ];
+    WidthArrayByNameMap[ "n2" ] = [ "80", "160" ];
+    WidthArrayByNameMap[ "n3" ] = [ "80", "160", "240" ];
+    WidthArrayByNameMap[ "n4" ] = [ "80", "160", "240", "320" ];
+    WidthArrayByNameMap[ "t" ] = [ "160" ];
+    WidthArrayByNameMap[ "t2" ] = [ "160", "320" ];
+    WidthArrayByNameMap[ "t3" ] = [ "160", "320", "480" ];
+    WidthArrayByNameMap[ "t4" ] = [ "160", "320", "480", "640" ];
+    WidthArrayByNameMap[ "s" ] = [ "320" ];
+    WidthArrayByNameMap[ "s2" ] = [ "320", "640" ];
+    WidthArrayByNameMap[ "s3" ] = [ "320", "640", "960" ];
+    WidthArrayByNameMap[ "s4" ] = [ "320", "640", "960", "1280" ];
+    WidthArrayByNameMap[ "c" ] = [ "480" ];
+    WidthArrayByNameMap[ "c2" ] = [ "480", "960" ];
+    WidthArrayByNameMap[ "c3" ] = [ "480", "960", "1440" ];
+    WidthArrayByNameMap[ "c4" ] = [ "480", "960", "1440", "1920" ];
+    WidthArrayByNameMap[ "m" ] = [ "640" ];
+    WidthArrayByNameMap[ "m2" ] = [ "640", "1280" ];
+    WidthArrayByNameMap[ "m3" ] = [ "640", "1280", "1920" ];
+    WidthArrayByNameMap[ "m4" ] = [ "640", "1280", "1920", "2560" ];
+    WidthArrayByNameMap[ "l" ] = [ "960" ];
+    WidthArrayByNameMap[ "l2" ] = [ "960", "1920" ];
+    WidthArrayByNameMap[ "l3" ] = [ "960", "1920", "2880" ];
+    WidthArrayByNameMap[ "l4" ] = [ "960", "1920", "2880", "3840" ];
+    WidthArrayByNameMap[ "b" ] = [ "1280" ];
+    WidthArrayByNameMap[ "b2" ] = [ "1280", "2560" ];
+    WidthArrayByNameMap[ "b3" ] = [ "1280", "2560", "3840" ];
+    WidthArrayByNameMap[ "h" ] = [ "1600" ];
+    WidthArrayByNameMap[ "h2" ] = [ "1600", "3200" ];
+    WidthArrayByNameMap[ "f" ] = [ "1920" ];
+    WidthArrayByNameMap[ "f2" ] = [ "1920", "3840" ];
+    WidthArrayByNameMap[ "u" ] = [ "3840" ];
     CommandArrayByNameMap = null;
     ToolPath = "convert";
+    RecursiveOptionIsEnabled = false;
     KeepOptionIsEnabled = false;
     SourceFolderPath = "";
     TargetFolderPath = "";
@@ -571,35 +621,51 @@ void main(
 
         argument_array = argument_array[ 1 .. $ ];
 
-        if ( option == "--ratio"
+        if ( option == "--surface-ratio"
              && argument_array.length >= 1 )
         {
             TargetSurfaceRatio = GetTargetSurfaceRatio( argument_array[ 0 ] );
             argument_array = argument_array[ 1 .. $ ];
         }
-        else if ( option == "--quality"
+        else if ( option == "--quality-list"
              && argument_array.length >= 1 )
         {
             TargetQualityArray = argument_array[ 0 ].split( ',' );
             argument_array = argument_array[ 1 .. $ ];
         }
-        else if ( option == "--default"
-             && argument_array.length >= 1 )
+        else if ( option == "--width-list"
+             && argument_array.length >= 2 )
         {
-            DefaultCommandArray = argument_array[ 0 ].split( '.' );
-            argument_array = argument_array[ 1 .. $ ];
+            WidthArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( ',' );
+            argument_array = argument_array[ 2 .. $ ];
         }
-        else if ( option == "--definition"
+        else if ( option == "--command-list"
              && argument_array.length >= 2 )
         {
             CommandArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( '.' );
             argument_array = argument_array[ 2 .. $ ];
         }
-        else if ( option == "--tool"
+        else if ( option == "--default-command-list"
+             && argument_array.length >= 1 )
+        {
+            DefaultCommandArray = argument_array[ 0 ].split( '.' );
+            argument_array = argument_array[ 1 .. $ ];
+        }
+        else if ( option == "--image-name-format"
+             && argument_array.length >= 1 )
+        {
+            TargetFileNameFormat = argument_array[ 0 ];
+            argument_array = argument_array[ 1 .. $ ];
+        }
+        else if ( option == "--tool-path"
                   && argument_array.length >= 1 )
         {
             ToolPath = argument_array[ 0 ];
             argument_array = argument_array[ 1 .. $ ];
+        }
+        else if ( option == "--recursive" )
+        {
+            RecursiveOptionIsEnabled = true;
         }
         else if ( option == "--keep" )
         {
