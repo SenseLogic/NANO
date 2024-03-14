@@ -1,6 +1,6 @@
 ..\nano^
+ --width-list m5 640,1280,1920,2560,3200^
  --quality-list 90,80,70,60^
- --default-command-list al4^
  --command-list n an4^
  --command-list t an@10.at4^
  --command-list c at@10.ac4^
@@ -21,7 +21,9 @@
  --command-list h16_9 s16_9.ab@10.ah2^
  --command-list f16_9 s16_9.ah@10.af2^
  --command-list u16_9 s16_9.af@10.au^
+ --default-command-list al4^
  --tool-path "%TOOL%/IMAGE_MAGICK/convert"^
+ --recursive^
  --keep^
  IN/^
  OUT/

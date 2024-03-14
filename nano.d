@@ -276,10 +276,10 @@ string GetTargetFileName(
     return
         TargetFileNameFormat
             .replace( "{l}", source_file_label )
-            .replace( "{e}", source_file_extension )
+            .replace( "{e}", source_file_extension[ 1 .. $ ] )
             .replace( "{w}", target_width )
             .replace( "{q}", target_quality )
-            .replace( "{x}", target_file_extension );
+            .replace( "{x}", target_file_extension[ 1 .. $ ] );
 }
 
 // ~~
@@ -314,8 +314,6 @@ void WriteImage(
         target_pixel_count;
     string
         command;
-
-    target_file_path ~= "." ~ target_width ~ target_file_extension;
 
     if ( !KeepOptionIsEnabled
          || !target_file_path.exists()
@@ -370,7 +368,7 @@ void WriteImage(
     }
     else
     {
-        writeln( "Keeping file: ", target_file_path );
+        writeln( "Keeping file : ", target_file_path );
     }
 }
 
@@ -378,9 +376,9 @@ void WriteImage(
 
 void ProcessFile(
     string source_file_path,
+    string source_folder_path,
     string source_file_label,
     string source_file_extension,
-    string source_folder_path,
     string[] command_array
     )
 {
@@ -501,27 +499,16 @@ void ProcessFiles(
     string[]
         source_file_name_part_array,
         command_array;
-    SpanMode
-        span_mode;
 
     writeln( "Reading folder : ", SourceFolderPath );
 
     try
     {
-        if ( RecursiveOptionIsEnabled )
-        {
-            span_mode = SpanMode.breadth;
-        }
-        else
-        {
-            span_mode = SpanMode.shallow;
-        }
-
-        foreach ( source_folder_entry; dirEntries( SourceFolderPath, span_mode ) )
+        foreach ( source_folder_entry; dirEntries( SourceFolderPath, RecursiveOptionIsEnabled ? SpanMode.depth : SpanMode.shallow ) )
         {
             if ( source_folder_entry.isFile )
             {
-                source_file_path = source_folder_entry.GetLogicalPath();
+                source_file_path = source_folder_entry.name.GetLogicalPath();
                 source_folder_path = source_file_path.GetFolderPath();
                 source_file_name = source_file_path.GetFileName();
                 source_file_name_part_array = source_file_name.split( '.' );
@@ -572,7 +559,7 @@ void main(
 
     TargetSurfaceRatio = 0.0;
     TargetQualityArray = [ "80" ];
-    TargetFileNameFormat = "{n}.{e}.{w}.{x}";
+    TargetFileNameFormat = "{l}.{e}.{w}.{x}";
     DefaultCommandArray = null;
     WidthArrayByNameMap = null;
     WidthArrayByNameMap[ "n" ] = [ "80" ];
@@ -651,7 +638,7 @@ void main(
             DefaultCommandArray = argument_array[ 0 ].split( '.' );
             argument_array = argument_array[ 1 .. $ ];
         }
-        else if ( option == "--image-name-format"
+        else if ( option == "--file-name-format"
              && argument_array.length >= 1 )
         {
             TargetFileNameFormat = argument_array[ 0 ];
@@ -692,6 +679,16 @@ void main(
     {
         writeln( "Usage :" );
         writeln( "    nano [options] <source folder path> <target folder path>" );
+        writeln( "Options :" );
+        writeln( "    --surface-ratio <surface ratio>" );
+        writeln( "    --quality-list <quality list>" );
+        writeln( "    --width-list <name> <width list>" );
+        writeln( "    --command-list <name> <command list>" );
+        writeln( "    --default-command-list <default command list>" );
+        writeln( "    --file-name-format <image name format>" );
+        writeln( "    --tool-path <tool path>" );
+        writeln( "    --recursive" );
+        writeln( "    --keep" );
 
         Abort( "Invalid arguments : " ~ argument_array.to!string() );
     }

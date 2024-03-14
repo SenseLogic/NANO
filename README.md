@@ -32,10 +32,10 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 --width-list <name> <width list>
 --command-list <name> <command list>
 --default-command-list <default command list>
---image-name-format <image name format>
+--file-name-format <file name format>
 --tool-path <tool path>
---recursive : process subfolders too
---keep : keep existing target images if they are newer than their source image
+--recursive
+--keep
 ```
 
 ## Usage
@@ -111,9 +111,9 @@ Those letters stand for : **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium
 
 A custom target quality list can also be specified after **@**.
 
-### Image names
+### File names
 
-The target image name format can be specified using the following letters :
+The target file name format can be specified using the following letters :
 
 *   **{l}** : source image label
 *   **{e}** : source image extension
@@ -126,7 +126,7 @@ The default target image name is : **{n}.{e}.{w}.{x}**
 ## Samples
 
 ```csh
-nano --default-command-list s16_9.a1920@70 --image-name-format @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+nano --default-command-list s16_9.a1920@70 --file-name-format @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
 ```csh
