@@ -40,40 +40,25 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 
 ## Usage
 
-### Commands
+### Command list
 
-The source image file names can have one or several commands before their extension.
+The source image file names can have a command list between dots, specified just before the file extension.
 
-For instance :
-
-*   "image.**jl**.png" generates "image.png.960.jpg"
-*   "image.**j960**.png" generates "image.png.960.jpg"
-*   "image.**j960@90**.png" generates "image.png.960.jpg" at 90% quality
-*   "image.**jm@10.jl4**.png" generates "image.png.480.jpg", "image.png.960.jpg", "image.png.1920.jpg", "image.png.2880.jpg", "image.png.3840.jpg"
-*   "image.**pt3**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
-*   "image.**p160,320,480**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
-*   "image.**p160,320,480@90,70,60**.png" generates "image.png.160.png" at 90% quality, "image.png.320.png" at 70% quality, "image.png.480.png" at 60% quality
-
-The default command list is used if none was provided.
+If none is provided, the default command list is used.
 
 The first character of a command can be :
 
-*   **@** : use default command list
-*   **@** `<definition name>` : use named command list
-*   **s** `<surface ratio>` : set surface ratio
+*   **@** : use the default command list
+*   **@** `<definition name>` : use a named command list
+*   **s** `<surface ratio>` : use a surface ratio
 *   **a** : generate .avif files
 *   **j** : generate .jpg files
 *   **p** : generate .png files
 *   **w** : generate .webp files
 
-For image generation commands, the next characters specify the target width list :
+In image generation commands, the next characters specify the target width list, either explicitely, or using a named width list :
 
 *   `<width>`,`<width>`,...
-
-Alternatively, a named target width list can be used.
-
-Here are those defined by default :
-
 *   **n** : 80
 *   **n2** : 80, 160
 *   **n3** : 80, 160, 240
@@ -109,7 +94,15 @@ Here are those defined by default :
 
 Those letters stand for : **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull, **U**ltra.
 
-A custom target quality list can also be specified after **@**.
+Width lists can be added or changed using the `--width-list` option.
+
+By default, the image will be resized to match the required width.
+
+Alternatively, if a surface ratio is specified, the image will be resized to match the amount of pixels of an image with this width and aspect ratio.
+
+In both cases, the image original aspect ratio will be preserved.
+
+An image generation command can also have a custom target quality list, put after **@**.
 
 ### File names
 
@@ -121,9 +114,21 @@ The target file name format can be specified using the following letters :
 *   **{q}** : target image quality
 *   **{x}** : target image extension
 
-The default target image name is : **{n}.{e}.{w}.{x}**
+The default target image name is : **{l}.{e}.{w}.{x}**
 
 ## Samples
+
+### File name
+
+*   "image.**jl**.png" generates "image.png.960.jpg"
+*   "image.**j960**.png" generates "image.png.960.jpg"
+*   "image.**j960@90**.png" generates "image.png.960.jpg" at 90% quality
+*   "image.**jm@10.jl4@80**.png" generates "image.png.480.jpg" at 10% quality, "image.png.960.jpg", "image.png.1920.jpg", "image.png.2880.jpg", "image.png.3840.jpg" at 80% quality
+*   "image.**pt3**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
+*   "image.**p160,320,480**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
+*   "image.**a160,320,480@80,70,60**.png" generates "image.png.160.avif" at 80% quality, "image.png.320.avif" at 70% quality, "image.png.480.avif" at 60% quality
+
+### Command line
 
 ```csh
 nano --default-command-list s16_9.a1920@70 --file-name-format @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
