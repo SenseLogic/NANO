@@ -8,6 +8,24 @@ Image variant generator.
 
 Nano generates image variants in different sizes and file formats.
 
+## Source file extensions
+
+*    .avif
+*    .heic
+*    .heif
+*    .jpg
+*    .png
+*    .svg
+*    .webp
+
+## Target file extensions
+
+*    .avif
+*    .heic
+*    .jpg
+*    .png
+*    .webp
+
 ## Installation
 
 Install the [DMD 2 compiler](https://dlang.org/download.html) (using the MinGW setup option on Windows).
@@ -38,20 +56,19 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 --keep
 ```
 
-## Usage
+## Command lists
 
-### Command list
+Each source image can have a command list between dots, put just before the file extension.
 
-The source image file names can have a command list between dots, specified just before the file extension.
-
-If none is provided, the default command list is used.
+If none is provided, the default command list will be used.
 
 The first character of a command can be :
 
-*   **@** : use the default command list
 *   **@** `<definition name>` : use a named command list
-*   **s** `<surface ratio>` : use a surface ratio
+*   **@** : use the default command list
+*   **s** `<surface ratio>` : use a pixel count computed from this surface ratio and the target width
 *   **a** : generate .avif files
+*   **h** : generate .heic files
 *   **j** : generate .jpg files
 *   **p** : generate .png files
 *   **w** : generate .webp files
@@ -104,7 +121,7 @@ In both cases, the image original aspect ratio will be preserved.
 
 An image generation command can also have a custom target quality list, put after **@**.
 
-### File names
+## Target file name format
 
 The target file name format can be specified using the following letters :
 

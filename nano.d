@@ -240,6 +240,7 @@ string GetTargetFileExtension(
     switch ( command_code )
     {
         case 'a' : return ".avif";
+        case 'h' : return ".heic";
         case 'j' : return ".jpg";
         case 'p' : return ".png";
         case 'w' : return ".webp";
@@ -521,9 +522,11 @@ void ProcessFiles(
                     source_file_extension = "." ~ source_file_name_part_array[ $ - 1 ];
 
                     if ( source_file_extension == ".avif"
-                         || source_file_extension == ".jpeg"
+                         || source_file_extension == ".heic"
+                         || source_file_extension == ".heif"
                          || source_file_extension == ".jpg"
                          || source_file_extension == ".png"
+                         || source_file_extension == ".svg"
                          || source_file_extension == ".webp" )
                     {
                         ProcessFile(
