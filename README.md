@@ -66,7 +66,8 @@ The first character of a command can be :
 
 *   **@** `<definition name>` : use a named command list
 *   **@** : use the default command list
-*   **s** `<surface ratio>` : use a pixel count computed from this surface ratio and the target width
+*   **c** : copy the source file
+*   **s** `<surface ratio>` : use this surface ratio to compute the target pixel count
 *   **a** : generate .avif files
 *   **h** : generate .heic files
 *   **j** : generate .jpg files
@@ -137,13 +138,13 @@ The default target image name is : **{l}.{e}.{w}.{x}**
 
 ### File name
 
-*   "image.**jl**.png" generates "image.png.960.jpg"
-*   "image.**j960**.png" generates "image.png.960.jpg"
-*   "image.**j960@90**.png" generates "image.png.960.jpg" at 90% quality
-*   "image.**jm@10.jl4@80**.png" generates "image.png.480.jpg" at 10% quality, "image.png.960.jpg", "image.png.1920.jpg", "image.png.2880.jpg", "image.png.3840.jpg" at 80% quality
-*   "image.**pt3**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
-*   "image.**p160,320,480**.png" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
-*   "image.**a160,320,480@80,70,60**.png" generates "image.png.160.avif" at 80% quality, "image.png.320.avif" at 70% quality, "image.png.480.avif" at 60% quality
+*   "**image.jl**" generates "image.png.960.jpg"
+*   "**image.j960**" generates "image.png.960.jpg"
+*   "**image.j960@90**" generates "image.png.960.jpg" at 90% quality
+*   "**image.jm@10.jl4@80**" generates "image.png.480.jpg" at 10% quality, "image.png.960.jpg", "image.png.1920.jpg", "image.png.2880.jpg", "image.png.3840.jpg" at 80% quality
+*   "**image.pt3**" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
+*   "**image.p160,320,480**" generates "image.png.160.png", "image.png.320.png", "image.png.480.png"
+*   "**image.a160,320,480@80,70,60**" generates "image.png.160.avif" at 80% quality, "image.png.320.avif" at 70% quality, "image.png.480.avif" at 60% quality
 
 ### Command line
 

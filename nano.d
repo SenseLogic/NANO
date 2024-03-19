@@ -23,7 +23,7 @@
 import core.stdc.stdlib : exit;
 import std.conv : to;
 import std.datetime : SysTime;
-import std.file : dirEntries, exists, getTimes, mkdirRecurse, SpanMode;
+import std.file : copy, dirEntries, exists, getTimes, mkdirRecurse, SpanMode;
 import std.path : absolutePath;
 import std.process : executeShell;
 import std.range : empty;
@@ -300,7 +300,46 @@ SysTime GetFileModificationTime(
 
 // ~~
 
-void WriteImage(
+bool IsUpdatedFile(
+    string source_file_path,
+    string target_file_path
+    )
+{
+    return
+        !KeepOptionIsEnabled
+        || !target_file_path.exists()
+        || source_file_path.GetFileModificationTime() > target_file_path.GetFileModificationTime();
+}
+
+// ~~
+
+void CopyImage(
+    string source_file_path,
+    string target_file_path
+    )
+{
+    if ( IsUpdatedFile( source_file_path, target_file_path ) )
+    {
+        writeln( "Writing file : ", target_file_path );
+
+        try
+        {
+            source_file_path.copy( target_file_path );
+        }
+        catch ( Exception exception )
+        {
+            Abort( "Can't write file", exception );
+        }
+    }
+    else
+    {
+        writeln( "Keeping file : ", target_file_path );
+    }
+}
+
+// ~~
+
+void GenerateImage(
     string source_file_path,
     string target_file_path,
     string target_file_extension,
@@ -316,9 +355,7 @@ void WriteImage(
     string
         command;
 
-    if ( !KeepOptionIsEnabled
-         || !target_file_path.exists()
-         || source_file_path.GetFileModificationTime() > target_file_path.GetFileModificationTime() )
+    if ( IsUpdatedFile( source_file_path, target_file_path ) )
     {
         writeln( "Writing file : ", target_file_path );
 
@@ -365,7 +402,14 @@ void WriteImage(
                ~ target_file_path.GetPhysicalPath()
                ~ "\"";
 
-        executeShell( command );
+        try
+        {
+            executeShell( command );
+        }
+        catch ( Exception exception )
+        {
+            Abort( "Can't write file", exception );
+        }
     }
     else
     {
@@ -432,6 +476,13 @@ void ProcessFile(
         {
             target_surface_ratio = GetTargetSurfaceRatio( command[ 1 .. $ ] );
         }
+        else if ( command_code == 'c' )
+        {
+            target_folder_path = TargetFolderPath ~ source_folder_path[ SourceFolderPath.length .. $ ];
+            target_file_path = target_folder_path ~ source_file_label ~ source_file_extension;
+
+            CopyImage( source_file_path, target_file_path );
+        }
         else if ( "ajpw".indexOf( command_code ) >= 0 )
         {
             target_file_extension = GetTargetFileExtension( command_code );
@@ -471,7 +522,7 @@ void ProcessFile(
 
                     target_file_path = target_folder_path ~ target_file_name;
 
-                    WriteImage(
+                    GenerateImage(
                         source_file_path,
                         target_file_path,
                         target_file_extension,
