@@ -23,31 +23,117 @@
 import core.stdc.stdlib : exit;
 import std.conv : to;
 import std.datetime : SysTime;
-import std.file : copy, dirEntries, exists, getTimes, mkdirRecurse, SpanMode;
+import std.file : copy, dirEntries, exists, getTimes, mkdirRecurse, readText, thisExePath, SpanMode;
 import std.path : absolutePath;
 import std.process : executeShell;
 import std.range : empty;
 import std.stdio : writeln, File;
-import std.string : endsWith, indexOf, lastIndexOf, replace, split, startsWith;
+import std.string : endsWith, indexOf, join, lastIndexOf, replace, split, startsWith, strip;
 
 // -- VARIABLES
 
 bool
     KeepOptionIsEnabled,
     RecursiveOptionIsEnabled;
-double
-    TargetSurfaceRatio;
 string
-    ToolPath,
     SourceFolderPath,
     TargetFolderPath,
-    TargetFileNameFormat;
-string[]
-    DefaultCommandArray,
-    TargetQualityArray;
-string[][ string ]
-    CommandArrayByNameMap,
-    WidthArrayByNameMap;
+    ToolPath;
+
+// -- TYPES
+
+class CONFIGURATION
+{
+    // -- ATTRIBUTES
+
+    string
+        Path;
+    string[]
+        FilterArray;
+    string[][ string ]
+        SizeArrayByNameMap,
+        QualityArrayByNameMap,
+        CommandArrayByNameMap;
+    double
+        DefaultRatio;
+    string[]
+        DefaultSizeArray,
+        DefaultQualityArray,
+        DefaultCommandArray;
+    string
+        DefaultName;
+
+    // -- INQUIRIES
+
+    string[] GetSizeArray(
+        string size_format
+        )
+    {
+        if ( size_format in SizeArrayByNameMap )
+        {
+            return SizeArrayByNameMap[ size_format ];
+        }
+        else
+        {
+            return size_format.split( ',' );
+        }
+    }
+
+    // ~~
+
+    string[] GetCommandArray(
+        string name
+        )
+    {
+        if ( name in CommandArrayByNameMap )
+        {
+            return CommandArrayByNameMap[ name ];
+        }
+        else
+        {
+            return DefaultCommandArray;
+        }
+    }
+
+    // ~~
+
+    string GetTargetFileName(
+        string source_file_label,
+        string source_file_extension,
+        string target_size,
+        string target_dimension,
+        string target_width,
+        string target_height,
+        string target_factor,
+        string target_quality,
+        string target_file_extension
+        )
+    {
+        string
+            name;
+
+        if ( DefaultName != "" )
+        {
+            name = DefaultName;
+        }
+        else
+        {
+            name = "{l}.{e}.{s}.{x}";
+        }
+
+        return
+            name
+                .replace( "{l}", source_file_label )
+                .replace( "{e}", source_file_extension[ 1 .. $ ] )
+                .replace( "{s}", target_size )
+                .replace( "{d}", target_dimension )
+                .replace( "{w}", target_width )
+                .replace( "{h}", target_height )
+                .replace( "{f}", target_factor )
+                .replace( "{q}", target_quality )
+                .replace( "{x}", target_file_extension[ 1 .. $ ] );
+    }
+}
 
 // -- FUNCTIONS
 
@@ -192,95 +278,10 @@ string GetFileExtension(
 
 // ~~
 
-string[] GetCommandArray(
-    string name
+string GetApplicationFolderPath(
     )
 {
-    if ( name in CommandArrayByNameMap )
-    {
-        return CommandArrayByNameMap[ name ];
-    }
-    else
-    {
-        return DefaultCommandArray;
-    }
-}
-
-// ~~
-
-double GetTargetSurfaceRatio(
-    string text
-    )
-{
-    string[]
-        part_array;
-
-    part_array = text.split( '_' );
-
-    if ( part_array.length == 2 )
-    {
-        return part_array[ 0 ].to!double() / part_array[ 1 ].to!double();
-    }
-    else if ( part_array.length == 1 )
-    {
-        return part_array[ 0 ].to!double();
-    }
-    else
-    {
-        return 0.0;
-    }
-}
-
-// ~~
-
-string GetTargetFileExtension(
-    char command_code
-    )
-{
-    switch ( command_code )
-    {
-        case 'a' : return ".avif";
-        case 'h' : return ".heic";
-        case 'j' : return ".jpg";
-        case 'p' : return ".png";
-        case 'w' : return ".webp";
-        default : return "";
-    }
-}
-
-// ~~
-
-string[] GetTargetWidthArray(
-    string target_width_format
-    )
-{
-    if ( target_width_format in WidthArrayByNameMap )
-    {
-        return WidthArrayByNameMap[ target_width_format ];
-    }
-    else
-    {
-        return target_width_format.split( ',' );
-    }
-}
-
-// ~~
-
-string GetTargetFileName(
-    string source_file_label,
-    string source_file_extension,
-    string target_width,
-    string target_quality,
-    string target_file_extension
-    )
-{
-    return
-        TargetFileNameFormat
-            .replace( "{l}", source_file_label )
-            .replace( "{e}", source_file_extension[ 1 .. $ ] )
-            .replace( "{w}", target_width )
-            .replace( "{q}", target_quality )
-            .replace( "{x}", target_file_extension[ 1 .. $ ] );
+    return thisExePath.GetLogicalPath().GetFolderPath();
 }
 
 // ~~
@@ -313,6 +314,198 @@ bool IsUpdatedFile(
 
 // ~~
 
+string ReadText(
+    string file_path
+    )
+{
+    string
+        file_text;
+
+    writeln( "Reading file : ", file_path );
+
+    try
+    {
+        file_text = file_path.readText();
+    }
+    catch ( Exception exception )
+    {
+        Abort( "Can't read file : " ~ file_path, exception );
+    }
+
+    return file_text;
+}
+
+// ~~
+
+double GetRatio(
+    string ratio_text
+    )
+{
+    string[]
+        ratio_text_part_array;
+
+    ratio_text_part_array = ratio_text.split( '_' );
+
+    if ( ratio_text_part_array.length == 2 )
+    {
+        return ratio_text_part_array[ 0 ].to!double() / ratio_text_part_array[ 1 ].to!double();
+    }
+    else if ( ratio_text_part_array.length == 1 )
+    {
+        return ratio_text_part_array[ 0 ].to!double();
+    }
+    else
+    {
+        return 0.0;
+    }
+}
+
+// ~~
+
+string GetFileExtensionFromCommandCode(
+    char command_code
+    )
+{
+    switch ( command_code )
+    {
+        case 'a' : return ".avif";
+        case 'h' : return ".heic";
+        case 'j' : return ".jpg";
+        case 'p' : return ".png";
+        case 's' : return ".svg";
+        case 'w' : return ".webp";
+        default : return "";
+    }
+}
+
+// ~~
+
+CONFIGURATION[] ReadConfigurationArray(
+    string configuration_file_path
+    )
+{
+    string
+        command_name,
+        configuration_file_text,
+        stripped_line;
+    string[]
+        argument_array,
+        filter_array,
+        line_array,
+        word_array;
+    CONFIGURATION
+        configuration;
+    CONFIGURATION[]
+        configuration_array;
+
+    if ( configuration_file_path.exists() )
+    {
+        configuration_file_text = configuration_file_path.ReadText().replace( "\t", "    " ).replace( "\r", "" );
+        line_array = configuration_file_text.split( "\n" );
+
+        foreach ( line_index, line; line_array )
+        {
+            stripped_line = line.strip();
+
+            if ( stripped_line != "" )
+            {
+                if ( line.startsWith( "for " ) )
+                {
+                    filter_array ~= stripped_line[ 4 .. $ ].strip().split( ' ' );
+                    configuration = null;
+                }
+                else
+                {
+                    if ( configuration is null )
+                    {
+                        configuration = new CONFIGURATION();
+                        configuration.Path = configuration_file_path[ SourceFolderPath.length .. $ ];
+                        configuration.FilterArray = filter_array;
+
+                        filter_array = null;
+
+                        configuration_array ~= configuration;
+                    }
+
+                    word_array = stripped_line.split( ' ' );
+
+                    command_name = word_array[ 0 ];
+                    argument_array = word_array[ 1 .. $ ];
+
+                    if ( command_name == "sizes"
+                         && argument_array.length == 2 )
+                    {
+                        configuration.SizeArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( ',' );
+                    }
+                    else if ( command_name == "qualities"
+                              && argument_array.length == 2 )
+                    {
+                        configuration.QualityArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( ',' );
+                    }
+                    else if ( command_name == "commands"
+                              && argument_array.length == 2 )
+                    {
+                        configuration.CommandArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( '.' );
+                    }
+                    else if ( command_name == "default-ratio"
+                              && argument_array.length == 1 )
+                    {
+                        configuration.DefaultRatio = GetRatio( argument_array[ 0 ] );
+                    }
+                    else if ( command_name == "default-sizes"
+                              && argument_array.length == 1 )
+                    {
+                        configuration.DefaultSizeArray = argument_array[ 0 ].split( ',' );
+                    }
+                    else if ( command_name == "default-qualities"
+                              && argument_array.length == 1 )
+                    {
+                        configuration.DefaultQualityArray = argument_array[ 0 ].split( ',' );
+                    }
+                    else if ( command_name == "default-commands"
+                              && argument_array.length == 1 )
+                    {
+                        configuration.DefaultCommandArray = argument_array[ 0 ].split( '.' );
+                    }
+                    else if ( command_name == "default-name"
+                              && argument_array.length == 1 )
+                    {
+                        configuration.DefaultName = argument_array[ 0 ];
+                    }
+                    else
+                    {
+                        Abort( configuration_file_path ~ ":" ~ ( line_index + 1 ).to!string() ~ " Invalid configuration : " ~ stripped_line );
+                    }
+                }
+            }
+        }
+    }
+
+    return configuration_array;
+}
+
+// ~~
+
+CONFIGURATION GetSourceFileConfiguration(
+    string source_file_path,
+    CONFIGURATION[] file_configuration_array
+    )
+{
+    CONFIGURATION
+        source_file_configuration;
+
+    source_file_configuration = new CONFIGURATION();
+
+    foreach ( file_configuration; file_configuration_array )
+    {
+        source_file_configuration = file_configuration;
+    }
+
+    return source_file_configuration;
+}
+
+// ~~
+
 void CopyImage(
     string source_file_path,
     string target_file_path
@@ -341,19 +534,94 @@ void CopyImage(
 
 void GenerateImage(
     string source_file_path,
-    string target_file_path,
+    string source_file_label,
+    string source_file_extension,
+    string target_folder_path,
     string target_file_extension,
-    string target_width,
-    double target_surface_ratio,
+    string target_size,
+    double target_ratio,
     string target_quality,
+    CONFIGURATION configuration
     )
 {
     double
+        real_target_height,
         real_target_width;
     long
         target_pixel_count;
     string
-        command;
+        command,
+        target_dimension,
+        target_factor,
+        target_file_name,
+        target_file_path,
+        target_height,
+        target_width;
+    string[]
+        target_size_part_array;
+
+    target_size_part_array = target_size.split( 'r' );
+
+    if ( target_size_part_array.length == 2 )
+    {
+        target_ratio = GetRatio( target_size_part_array[ 2 ] );
+        target_size = target_size_part_array[ 0 ];
+    }
+
+    target_size_part_array = target_size.split( 'x' );
+
+    if ( target_size_part_array.length == 2 )
+    {
+        if ( target_size.endsWith( 'x' ) )
+        {
+            target_factor = ( target_size_part_array[ 0 ].to!long() * 100 ).to!string();
+            target_dimension = target_factor ~ "%";
+        }
+        else
+        {
+            target_width = target_size_part_array[ 0 ];
+            target_height = target_size_part_array[ 1 ];
+            target_dimension = target_width ~ "x" ~ target_height;
+        }
+    }
+    else if ( target_size.endsWith( '%' ) )
+    {
+        target_factor = target_size[ 0 .. $ - 1 ];
+        target_dimension = target_factor ~ "%";
+    }
+    else if ( target_size.endsWith( 'h' ) )
+    {
+        target_height = target_size[ 0 .. $ - 1 ];
+        target_width = "";
+        target_dimension = "x" ~ target_height;
+    }
+    else if ( target_size.endsWith( 'w' ) )
+    {
+        target_width = target_size[ 0 .. $ - 1 ];
+        target_height = "";
+        target_dimension = target_width ~ "x";
+    }
+    else
+    {
+        target_width = target_size;
+        target_height = "";
+        target_dimension = target_width ~ "x";
+    }
+
+    target_file_name
+        = configuration.GetTargetFileName(
+              source_file_label,
+              source_file_extension,
+              target_size,
+              target_dimension,
+              target_width,
+              target_height,
+              target_factor,
+              target_quality,
+              target_file_extension
+              );
+
+    target_file_path = target_folder_path ~ target_file_name;
 
     if ( IsUpdatedFile( source_file_path, target_file_path ) )
     {
@@ -365,29 +633,35 @@ void GenerateImage(
               ~ source_file_path.GetPhysicalPath()
               ~ "\"";
 
+        if ( source_file_extension == ".svg" )
+        {
+            command
+                ~= " -background none -alpha set -size " ~ target_dimension;
+        }
+
         if ( target_file_extension == ".jpg" )
         {
             command
                 ~= " -background white -alpha remove -alpha off";
         }
 
-        if ( target_surface_ratio > 0.0 )
+        if ( target_ratio > 0.0 )
         {
-            real_target_width = target_width.to!double();
-            target_pixel_count = ( real_target_width * real_target_width / target_surface_ratio ).to!long();
+            if ( target_width != "" )
+            {
+                real_target_width = target_width.to!double();
+                target_dimension = ( real_target_width * real_target_width / target_ratio ).to!long().to!string() ~ "@";
+            }
+            else if ( target_height != "" )
+            {
+                real_target_height = target_height.to!double();
+                target_dimension = ( real_target_height * real_target_height * target_ratio ).to!long().to!string() ~ "@";
+            }
+        }
 
-            command
-                ~= " -resize "
-                   ~ target_pixel_count.to!string()
-                   ~ "@";
-        }
-        else
-        {
-            command
-                ~= " -resize "
-                   ~ target_width
-                   ~ "x";
-        }
+        command
+            ~= " -resize "
+               ~ target_dimension;
 
         if ( target_file_extension == ".jpg" )
         {
@@ -401,6 +675,8 @@ void GenerateImage(
                ~ " -strip \""
                ~ target_file_path.GetPhysicalPath()
                ~ "\"";
+
+        writeln( "Running command : ", command );
 
         try
         {
@@ -419,18 +695,19 @@ void GenerateImage(
 
 // ~~
 
-void ProcessFile(
+void ProcessSourceFile(
     string source_file_path,
     string source_folder_path,
     string source_file_label,
     string source_file_extension,
-    string[] command_array
+    string[] command_array,
+    CONFIGURATION configuration
     )
 {
     char
         command_code;
     double
-        target_surface_ratio;
+        target_ratio;
     long
         command_index;
     string
@@ -441,20 +718,20 @@ void ProcessFile(
         target_file_path,
         target_folder_path,
         target_quality,
-        target_width_format;
+        target_size_format;
     string[]
         command_part_array,
         target_quality_array,
-        target_width_array;
+        target_size_array;
 
     writeln( "Reading file : ", source_file_path );
 
     if ( command_array.length == 0 )
     {
-        command_array = DefaultCommandArray;
+        command_array = configuration.DefaultCommandArray;
     }
 
-    target_surface_ratio = TargetSurfaceRatio;
+    target_ratio = configuration.DefaultRatio;
 
     for ( command_index = 0;
           command_index < command_array.length;
@@ -467,38 +744,42 @@ void ProcessFile(
         {
             command_array
                 = command_array[ 0 .. command_index ]
-                  ~ GetCommandArray( command[ 1 .. $ ] )
+                  ~ configuration.GetCommandArray( command[ 1 .. $ ] )
                   ~ command_array[ command_index + 1 .. $ ];
 
             --command_index;
         }
-        else if ( command_code == 's' )
+        else if ( command_code == 'r' )
         {
-            target_surface_ratio = GetTargetSurfaceRatio( command[ 1 .. $ ] );
+            target_ratio = GetRatio( command[ 1 .. $ ] );
         }
-        else if ( command_code == 'c' )
+        else if ( command_code == 'o' )
         {
             target_folder_path = TargetFolderPath ~ source_folder_path[ SourceFolderPath.length .. $ ];
             target_file_path = target_folder_path ~ source_file_label ~ source_file_extension;
 
             CopyImage( source_file_path, target_file_path );
         }
-        else if ( "ajpw".indexOf( command_code ) >= 0 )
+        else if ( "ahjpsw".indexOf( command_code ) >= 0 )
         {
-            target_file_extension = GetTargetFileExtension( command_code );
+            target_file_extension = GetFileExtensionFromCommandCode( command_code );
             command_part_array = command.split( '@' );
-            target_width_array = GetTargetWidthArray( command_part_array[ 0 ][ 1 .. $ ] );
+            target_size_array = configuration.GetSizeArray( command_part_array[ 0 ][ 1 .. $ ] );
 
             if ( command_part_array.length == 2 )
             {
                 target_quality_array = command_part_array[ 1 ].split( ',' );
             }
+            else if ( configuration.DefaultQualityArray.length > 0 )
+            {
+                target_quality_array = configuration.DefaultQualityArray;
+            }
             else
             {
-                target_quality_array = TargetQualityArray;
+                target_quality_array = [ "80" ];
             }
 
-            if ( !target_width_array.empty )
+            if ( !target_size_array.empty )
             {
                 target_folder_path = TargetFolderPath ~ source_folder_path[ SourceFolderPath.length .. $ ];
 
@@ -507,28 +788,20 @@ void ProcessFile(
                     target_folder_path.mkdirRecurse();
                 }
 
-                foreach ( target_width_index, target_width; target_width_array )
+                foreach ( target_size_index, target_size; target_size_array )
                 {
-                    target_quality = target_quality_array[ target_width_index % target_quality_array.length ];
-
-                    target_file_name
-                        = GetTargetFileName(
-                              source_file_label,
-                              source_file_extension,
-                              target_width,
-                              target_quality,
-                              target_file_extension
-                              );
-
-                    target_file_path = target_folder_path ~ target_file_name;
+                    target_quality = target_quality_array[ target_size_index % target_quality_array.length ];
 
                     GenerateImage(
                         source_file_path,
-                        target_file_path,
+                        source_file_label,
+                        source_file_extension,
+                        target_folder_path,
                         target_file_extension,
-                        target_width,
-                        target_surface_ratio,
-                        target_quality
+                        target_size,
+                        target_ratio,
+                        target_quality,
+                        configuration
                         );
                 }
             }
@@ -538,7 +811,9 @@ void ProcessFile(
 
 // ~~
 
-void ProcessFiles(
+void ProcessSourceFolder(
+    string source_folder_path,
+    CONFIGURATION[] configuration_array
     )
 {
     string
@@ -546,26 +821,31 @@ void ProcessFiles(
         source_file_label,
         source_file_name,
         source_file_path,
-        source_folder_path,
         target_file_name;
     string[]
         source_file_name_part_array,
         command_array;
+    CONFIGURATION[]
+        file_configuration_array,
+        folder_configuration_array;
 
-    writeln( "Reading folder : ", SourceFolderPath );
+    writeln( "Reading folder : ", source_folder_path );
+
+    folder_configuration_array
+        = configuration_array
+          ~ ReadConfigurationArray( source_folder_path ~ ".nano" );
 
     try
     {
-        foreach ( source_folder_entry; dirEntries( SourceFolderPath, RecursiveOptionIsEnabled ? SpanMode.depth : SpanMode.shallow ) )
+        foreach ( source_folder_entry; dirEntries( source_folder_path, SpanMode.shallow ) )
         {
             if ( source_folder_entry.isFile )
             {
                 source_file_path = source_folder_entry.name.GetLogicalPath();
-                source_folder_path = source_file_path.GetFolderPath();
                 source_file_name = source_file_path.GetFileName();
                 source_file_name_part_array = source_file_name.split( '.' );
 
-                if ( source_file_path.startsWith( SourceFolderPath )
+                if ( source_file_path.startsWith( source_folder_path )
                      && source_file_name_part_array.length >= 2 )
                 {
                     source_file_label = source_file_name_part_array[ 0 ];
@@ -580,15 +860,28 @@ void ProcessFiles(
                          || source_file_extension == ".svg"
                          || source_file_extension == ".webp" )
                     {
-                        ProcessFile(
+                        file_configuration_array
+                            = folder_configuration_array
+                              ~ ReadConfigurationArray( source_file_path ~ ".nano" );
+
+                        ProcessSourceFile(
                             source_file_path,
                             source_folder_path,
                             source_file_label,
                             source_file_extension,
-                            command_array
+                            command_array,
+                            GetSourceFileConfiguration( source_file_path, file_configuration_array )
                             );
                     }
                 }
+            }
+            else if ( source_folder_entry.isDir
+                      && RecursiveOptionIsEnabled )
+            {
+                ProcessSourceFolder(
+                    source_folder_entry.name.GetLogicalPath() ~ '/',
+                    folder_configuration_array
+                    );
             }
         }
     }
@@ -607,95 +900,41 @@ void main(
     long
         argument_count;
     string
+        configuration_text,
         option;
 
     argument_array = argument_array[ 1 .. $ ];
 
-    TargetSurfaceRatio = 0.0;
-    TargetQualityArray = [ "80" ];
-    TargetFileNameFormat = "{l}.{e}.{w}.{x}";
-    DefaultCommandArray = null;
-    WidthArrayByNameMap = null;
-    WidthArrayByNameMap[ "n" ] = [ "80" ];
-    WidthArrayByNameMap[ "n2" ] = [ "80", "160" ];
-    WidthArrayByNameMap[ "n3" ] = [ "80", "160", "240" ];
-    WidthArrayByNameMap[ "n4" ] = [ "80", "160", "240", "320" ];
-    WidthArrayByNameMap[ "t" ] = [ "160" ];
-    WidthArrayByNameMap[ "t2" ] = [ "160", "320" ];
-    WidthArrayByNameMap[ "t3" ] = [ "160", "320", "480" ];
-    WidthArrayByNameMap[ "t4" ] = [ "160", "320", "480", "640" ];
-    WidthArrayByNameMap[ "s" ] = [ "320" ];
-    WidthArrayByNameMap[ "s2" ] = [ "320", "640" ];
-    WidthArrayByNameMap[ "s3" ] = [ "320", "640", "960" ];
-    WidthArrayByNameMap[ "s4" ] = [ "320", "640", "960", "1280" ];
-    WidthArrayByNameMap[ "c" ] = [ "480" ];
-    WidthArrayByNameMap[ "c2" ] = [ "480", "960" ];
-    WidthArrayByNameMap[ "c3" ] = [ "480", "960", "1440" ];
-    WidthArrayByNameMap[ "c4" ] = [ "480", "960", "1440", "1920" ];
-    WidthArrayByNameMap[ "m" ] = [ "640" ];
-    WidthArrayByNameMap[ "m2" ] = [ "640", "1280" ];
-    WidthArrayByNameMap[ "m3" ] = [ "640", "1280", "1920" ];
-    WidthArrayByNameMap[ "m4" ] = [ "640", "1280", "1920", "2560" ];
-    WidthArrayByNameMap[ "l" ] = [ "960" ];
-    WidthArrayByNameMap[ "l2" ] = [ "960", "1920" ];
-    WidthArrayByNameMap[ "l3" ] = [ "960", "1920", "2880" ];
-    WidthArrayByNameMap[ "l4" ] = [ "960", "1920", "2880", "3840" ];
-    WidthArrayByNameMap[ "b" ] = [ "1280" ];
-    WidthArrayByNameMap[ "b2" ] = [ "1280", "2560" ];
-    WidthArrayByNameMap[ "b3" ] = [ "1280", "2560", "3840" ];
-    WidthArrayByNameMap[ "h" ] = [ "1600" ];
-    WidthArrayByNameMap[ "h2" ] = [ "1600", "3200" ];
-    WidthArrayByNameMap[ "f" ] = [ "1920" ];
-    WidthArrayByNameMap[ "f2" ] = [ "1920", "3840" ];
-    WidthArrayByNameMap[ "u" ] = [ "3840" ];
-    CommandArrayByNameMap = null;
     ToolPath = "convert";
     RecursiveOptionIsEnabled = false;
     KeepOptionIsEnabled = false;
     SourceFolderPath = "";
     TargetFolderPath = "";
 
+    configuration_text = "*.*\n";
+
     while ( argument_array.length >= 1
             && argument_array[ 0 ].startsWith( "--" ) )
     {
         option = argument_array[ 0 ];
-
         argument_array = argument_array[ 1 .. $ ];
 
-        if ( option == "--surface-ratio"
-             && argument_array.length >= 1 )
+        if ( ( option == "--sizes"
+               || option == "--qualities"
+               || option == "--commands" )
+               && argument_array.length >= 2 )
         {
-            TargetSurfaceRatio = GetTargetSurfaceRatio( argument_array[ 0 ] );
-            argument_array = argument_array[ 1 .. $ ];
-        }
-        else if ( option == "--quality-list"
-             && argument_array.length >= 1 )
-        {
-            TargetQualityArray = argument_array[ 0 ].split( ',' );
-            argument_array = argument_array[ 1 .. $ ];
-        }
-        else if ( option == "--width-list"
-             && argument_array.length >= 2 )
-        {
-            WidthArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( ',' );
+            configuration_text ~= option ~ " " ~ argument_array[ 0 .. 1 ].join( ' '  ) ~ "\n";
             argument_array = argument_array[ 2 .. $ ];
         }
-        else if ( option == "--command-list"
-             && argument_array.length >= 2 )
+        else if ( ( option == "--default-ratio"
+                    || option == "--default-sizes"
+                    || option == "--default-qualities"
+                    || option == "--default-commands"
+                    || option == "--default-name" )
+                  && argument_array.length >= 1 )
         {
-            CommandArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( '.' );
-            argument_array = argument_array[ 2 .. $ ];
-        }
-        else if ( option == "--default-command-list"
-             && argument_array.length >= 1 )
-        {
-            DefaultCommandArray = argument_array[ 0 ].split( '.' );
-            argument_array = argument_array[ 1 .. $ ];
-        }
-        else if ( option == "--file-name-format"
-             && argument_array.length >= 1 )
-        {
-            TargetFileNameFormat = argument_array[ 0 ];
+            configuration_text ~= option ~ " " ~ argument_array[ 0 ] ~ "\n";
             argument_array = argument_array[ 1 .. $ ];
         }
         else if ( option == "--tool-path"
@@ -727,19 +966,24 @@ void main(
     if ( SourceFolderPath.GetLogicalPath().endsWith( '/' )
          && TargetFolderPath.GetLogicalPath().endsWith( '/' ) )
     {
-        ProcessFiles();
+        ProcessSourceFolder(
+            SourceFolderPath,
+            ReadConfigurationArray( GetApplicationFolderPath() ~ ".nano" )
+            );
     }
     else
     {
         writeln( "Usage :" );
         writeln( "    nano [options] <source folder path> <target folder path>" );
         writeln( "Options :" );
-        writeln( "    --surface-ratio <surface ratio>" );
-        writeln( "    --quality-list <quality list>" );
-        writeln( "    --width-list <name> <width list>" );
-        writeln( "    --command-list <name> <command list>" );
-        writeln( "    --default-command-list <default command list>" );
-        writeln( "    --file-name-format <image name format>" );
+        writeln( "    --sizes <name> <size list>" );
+        writeln( "    --qualities <name> <quality list>" );
+        writeln( "    --commands <name> <command list>" );
+        writeln( "    --default-ratio <ratio>" );
+        writeln( "    --default-sizes <size list>" );
+        writeln( "    --default-qualities <quality list>" );
+        writeln( "    --default-commands <command list>" );
+        writeln( "    --default-name <image name format>" );
         writeln( "    --tool-path <tool path>" );
         writeln( "    --recursive" );
         writeln( "    --keep" );
