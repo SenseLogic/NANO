@@ -47,7 +47,7 @@ class CONFIGURATION
     // -- ATTRIBUTES
 
     string
-        Path;
+        FolderPath;
     string[]
         FilterArray;
     string[][ string ]
@@ -63,7 +63,52 @@ class CONFIGURATION
     string
         DefaultName;
 
+    // -- CONSTRUCTORS
+
+    this(
+        )
+    {
+        DefaultRatio = -1;
+    }
+
     // -- INQUIRIES
+
+    void Dump(
+        )
+    {
+        writeln( "FolderPath: ", FolderPath );
+        writeln( "FilterArray: ", FilterArray );
+        writeln( "SizeArrayByNameMap: ", SizeArrayByNameMap );
+        writeln( "QualityArrayByNameMap: ", QualityArrayByNameMap );
+        writeln( "CommandArrayByNameMap: ", CommandArrayByNameMap );
+        writeln( "DefaultRatio: ", DefaultRatio );
+        writeln( "DefaultSizeArray: ", DefaultSizeArray );
+        writeln( "DefaultQualityArray: ", DefaultQualityArray );
+        writeln( "DefaultCommandArray: ", DefaultCommandArray );
+        writeln( "DefaultName: ", DefaultName );
+    }
+
+    // ~~
+
+    bool MatchesFilePath(
+        string file_path
+        )
+    {
+        if ( FilterArray.length == 0 )
+        {
+            return true;
+        }
+        else
+        {
+            foreach ( filter; FilterArray )
+            {
+            }
+
+            return false;
+        }
+    }
+
+    // ~~
 
     string[] GetSizeArray(
         string size_format
@@ -109,20 +154,8 @@ class CONFIGURATION
         string target_file_extension
         )
     {
-        string
-            name;
-
-        if ( DefaultName != "" )
-        {
-            name = DefaultName;
-        }
-        else
-        {
-            name = "{l}.{e}.{s}.{x}";
-        }
-
         return
-            name
+            DefaultName
                 .replace( "{l}", source_file_label )
                 .replace( "{e}", source_file_extension[ 1 .. $ ] )
                 .replace( "{s}", target_size )
@@ -381,7 +414,8 @@ string GetFileExtensionFromCommandCode(
 // ~~
 
 CONFIGURATION[] ReadConfigurationArray(
-    string configuration_file_path
+    string configuration_file_path,
+    string folder_path
     )
 {
     string
@@ -409,9 +443,10 @@ CONFIGURATION[] ReadConfigurationArray(
 
             if ( stripped_line != "" )
             {
-                if ( line.startsWith( "for " ) )
+                if ( stripped_line.startsWith( "for " ) )
                 {
                     filter_array ~= stripped_line[ 4 .. $ ].strip().split( ' ' );
+
                     configuration = null;
                 }
                 else
@@ -419,12 +454,11 @@ CONFIGURATION[] ReadConfigurationArray(
                     if ( configuration is null )
                     {
                         configuration = new CONFIGURATION();
-                        configuration.Path = configuration_file_path[ SourceFolderPath.length .. $ ];
+                        configuration.FolderPath = folder_path;
                         configuration.FilterArray = filter_array;
+                        configuration_array ~= configuration;
 
                         filter_array = null;
-
-                        configuration_array ~= configuration;
                     }
 
                     word_array = stripped_line.split( ' ' );
@@ -479,6 +513,10 @@ CONFIGURATION[] ReadConfigurationArray(
                 }
             }
         }
+        if ( configuration_array.length > 0 )
+        {
+            configuration_array[ $ - 1 ].Dump();
+        }
     }
 
     return configuration_array;
@@ -498,7 +536,48 @@ CONFIGURATION GetSourceFileConfiguration(
 
     foreach ( file_configuration; file_configuration_array )
     {
-        source_file_configuration = file_configuration;
+        if ( file_configuration.MatchesFilePath( source_file_path ) )
+        {
+            foreach ( name, size_array; file_configuration.SizeArrayByNameMap )
+            {
+                source_file_configuration.SizeArrayByNameMap[ name ] = size_array;
+            }
+
+            foreach ( name, size_array; file_configuration.QualityArrayByNameMap )
+            {
+                source_file_configuration.QualityArrayByNameMap[ name ] = size_array;
+            }
+
+            foreach ( name, size_array; file_configuration.CommandArrayByNameMap )
+            {
+                source_file_configuration.CommandArrayByNameMap[ name ] = size_array;
+            }
+
+            if ( file_configuration.DefaultRatio >= 0.0 )
+            {
+                source_file_configuration.DefaultRatio = file_configuration.DefaultRatio;
+            }
+
+            if ( file_configuration.DefaultSizeArray.length > 0 )
+            {
+                source_file_configuration.DefaultSizeArray = file_configuration.DefaultSizeArray;
+            }
+
+            if ( file_configuration.DefaultQualityArray.length > 0 )
+            {
+                source_file_configuration.DefaultQualityArray = file_configuration.DefaultQualityArray;
+            }
+
+            if ( file_configuration.DefaultCommandArray.length > 0 )
+            {
+                source_file_configuration.DefaultCommandArray = file_configuration.DefaultCommandArray;
+            }
+
+            if ( file_configuration.DefaultName.length > 0 )
+            {
+                source_file_configuration.DefaultName = file_configuration.DefaultName;
+            }
+        }
     }
 
     return source_file_configuration;
@@ -770,13 +849,9 @@ void ProcessSourceFile(
             {
                 target_quality_array = command_part_array[ 1 ].split( ',' );
             }
-            else if ( configuration.DefaultQualityArray.length > 0 )
-            {
-                target_quality_array = configuration.DefaultQualityArray;
-            }
             else
             {
-                target_quality_array = [ "80" ];
+                target_quality_array = configuration.DefaultQualityArray;
             }
 
             if ( !target_size_array.empty )
@@ -833,7 +908,10 @@ void ProcessSourceFolder(
 
     folder_configuration_array
         = configuration_array
-          ~ ReadConfigurationArray( source_folder_path ~ ".nano" );
+          ~ ReadConfigurationArray(
+                source_folder_path ~ ".nano",
+                source_folder_path[ SourceFolderPath.length .. $ ]
+                );
 
     try
     {
@@ -862,7 +940,10 @@ void ProcessSourceFolder(
                     {
                         file_configuration_array
                             = folder_configuration_array
-                              ~ ReadConfigurationArray( source_file_path ~ ".nano" );
+                              ~ ReadConfigurationArray(
+                                    source_file_path ~ ".nano",
+                                    source_folder_path[ SourceFolderPath.length .. $ ]
+                                    );
 
                         ProcessSourceFile(
                             source_file_path,
@@ -968,7 +1049,10 @@ void main(
     {
         ProcessSourceFolder(
             SourceFolderPath,
-            ReadConfigurationArray( GetApplicationFolderPath() ~ ".nano" )
+            ReadConfigurationArray(
+                GetApplicationFolderPath() ~ ".nano",
+                ""
+                )
             );
     }
     else

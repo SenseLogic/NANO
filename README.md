@@ -136,15 +136,15 @@ The target file name format can be specified using the following letters :
 ### Command line
 
 ```csh
-nano --commands s16_9.a1920@70 --name @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+nano --commands r16_9.a1920@70 --name @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
 ```csh
-nano --qualities 75,70,65,60 --commands s16_9.am@10.al4 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+nano --qualities 75,70,65,60 --commands r16_9.am@10.al4 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
 ```csh
-nano --qualities 80 --sizes m5 640,1280,1920,2560,3200 --commands m5 ac@10.am5 --commands sm5 s16_9.ac@10.am5
+nano --qualities 80 --sizes m5 640,1280,1920,2560,3200 --commands m5 ac@10.am5 --commands sm5 r16_9.ac@10.am5
      --commands @m5 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
@@ -154,7 +154,7 @@ nano --qualities 80 --sizes m5 640,1280,1920,2560,3200 --commands m5 ac@10.am5 -
 
 ## Version
 
-1.0
+2.0
 
 ## Author
 

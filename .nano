@@ -40,3 +40,5 @@ sizes h2 1600,3200
 sizes f 1920
 sizes f2 1920,3840
 sizes u 3840
+default-qualities 80
+default-name {l}.{e}.{s}.{x}
