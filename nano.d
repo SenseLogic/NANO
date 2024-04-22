@@ -24,7 +24,7 @@ import core.stdc.stdlib : exit;
 import std.conv : to;
 import std.datetime : SysTime;
 import std.file : copy, dirEntries, exists, getTimes, mkdirRecurse, readText, thisExePath, SpanMode;
-import std.path : absolutePath;
+import std.path : absolutePath, globMatch;
 import std.process : executeShell;
 import std.range : empty;
 import std.stdio : writeln, File;
@@ -91,6 +91,57 @@ class CONFIGURATION
     // ~~
 
     bool MatchesFilePath(
+        string file_path,
+        string filter
+        )
+    {
+        bool
+            folder_path_filter_is_absolute,
+            folder_path_filter_is_recursive;
+        string
+            file_name,
+            file_name_filter,
+            folder_path,
+            folder_path_filter;
+
+        folder_path = file_path.GetFolderPath();
+        file_name = file_path.GetFileName();
+
+        folder_path_filter = filter.GetFolderPath();
+        folder_path_filter_is_absolute = folder_path_filter.startsWith( '/' );
+        folder_path_filter_is_recursive = folder_path_filter.endsWith( "//" );
+        file_name_filter = filter.GetFileName();
+
+        if ( folder_path_filter_is_absolute )
+        {
+            folder_path_filter = FolderPath ~ folder_path_filter[ 1 .. $ ];
+
+            if ( ( folder_path_filter_is_recursive
+                   && !folder_path.startsWith( folder_path_filter ) )
+                 || ( !folder_path_filter_is_recursive
+                      && folder_path != folder_path_filter ) )
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if ( !folder_path.startsWith( FolderPath )
+                 || ( folder_path_filter_is_recursive
+                      && ( "/" ~ folder_path ).indexOf( "/" ~ folder_path_filter ) < 0 )
+                 || ( !folder_path_filter_is_recursive
+                      && ( "/" ~ folder_path ).endsWith( "/" ~ folder_path_filter ) ) )
+            {
+                return false;
+            }
+        }
+
+        return file_name.globMatch( file_name_filter );
+    }
+
+    // ~~
+
+    bool MatchesFilePath(
         string file_path
         )
     {
@@ -102,6 +153,10 @@ class CONFIGURATION
         {
             foreach ( filter; FilterArray )
             {
+                if ( MatchesFilePath( file_path, filter ) )
+                {
+                    return true;
+                }
             }
 
             return false;
