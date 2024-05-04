@@ -71,6 +71,7 @@ The first character of a command can be :
 *   **@** : use the default command list
 *   **o** : copy the original source file
 *   **r** `<ratio>` : define the surface aspect ratio
+*   **f** `<frame>` : define the cropping frame
 *   **a** : generate .avif files
 *   **h** : generate .heic files
 *   **j** : generate .jpg files
@@ -95,6 +96,22 @@ In both cases, the image original aspect ratio will be preserved.
 
 An image generation command can also have a custom target quality list, put after **@**.
 
+## Cropping frame
+
+*   <width>x<height>[{+-}<horizontal offset>{+-}<vertical offset>][<origin>]
+
+## Cropping frame origin
+
+*   tl : top left
+*   t : top
+*   tr : top right
+*   l : left
+*   c : center
+*   r : right
+*   bl : bottom left
+*   b : bottom
+*   br : bottom right
+
 ## Image size
 
 *   <factor>%
@@ -106,6 +123,7 @@ An image generation command can also have a custom target quality list, put afte
 *   <width>#<ratio>
 *   <width>w#<ratio>
 *   <height>h#<ratio>
+
 
 ## Image name format
 

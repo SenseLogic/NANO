@@ -2,3 +2,6 @@ default-commands al4
 
 for profile_17.jpg *_18.jpg
 default-commands am6
+
+for *.webp
+default-commands f720x1024+0+0c.am6

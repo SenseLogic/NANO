@@ -56,6 +56,9 @@ class CONFIGURATION
         CommandArrayByNameMap;
     double
         DefaultRatio;
+    string
+        DefaultGravity,
+        DefaultCrop;
     string[]
         DefaultSizeArray,
         DefaultQualityArray,
@@ -82,6 +85,8 @@ class CONFIGURATION
         writeln( "QualityArrayByNameMap: ", QualityArrayByNameMap );
         writeln( "CommandArrayByNameMap: ", CommandArrayByNameMap );
         writeln( "DefaultRatio: ", DefaultRatio );
+        writeln( "DefaultGravity: ", DefaultGravity );
+        writeln( "DefaultCrop: ", DefaultCrop );
         writeln( "DefaultSizeArray: ", DefaultSizeArray );
         writeln( "DefaultQualityArray: ", DefaultQualityArray );
         writeln( "DefaultCommandArray: ", DefaultCommandArray );
@@ -112,27 +117,30 @@ class CONFIGURATION
         folder_path_filter_is_recursive = folder_path_filter.endsWith( "//" );
         file_name_filter = filter.GetFileName();
 
-        if ( folder_path_filter_is_absolute )
+        if ( folder_path_filter != "" )
         {
-            folder_path_filter = FolderPath ~ folder_path_filter[ 1 .. $ ];
+            if ( folder_path_filter_is_absolute )
+            {
+                folder_path_filter = FolderPath ~ folder_path_filter[ 1 .. $ ];
 
-            if ( ( folder_path_filter_is_recursive
-                   && !folder_path.startsWith( folder_path_filter ) )
-                 || ( !folder_path_filter_is_recursive
-                      && folder_path != folder_path_filter ) )
-            {
-                return false;
+                if ( ( folder_path_filter_is_recursive
+                       && !folder_path.startsWith( folder_path_filter ) )
+                     || ( !folder_path_filter_is_recursive
+                          && folder_path != folder_path_filter ) )
+                {
+                    return false;
+                }
             }
-        }
-        else
-        {
-            if ( !folder_path.startsWith( FolderPath )
-                 || ( folder_path_filter_is_recursive
-                      && ( "/" ~ folder_path ).indexOf( "/" ~ folder_path_filter ) < 0 )
-                 || ( !folder_path_filter_is_recursive
-                      && ( "/" ~ folder_path ).endsWith( "/" ~ folder_path_filter ) ) )
+            else
             {
-                return false;
+                if ( !folder_path.startsWith( FolderPath )
+                     || ( folder_path_filter_is_recursive
+                          && ( "/" ~ folder_path ).indexOf( "/" ~ folder_path_filter ) < 0 )
+                     || ( !folder_path_filter_is_recursive
+                          && ( "/" ~ folder_path ).endsWith( "/" ~ folder_path_filter ) ) )
+                {
+                    return false;
+                }
             }
         }
 
@@ -450,6 +458,66 @@ double GetRatio(
 
 // ~~
 
+void GetGravityAndCrop(
+    ref string gravity,
+    ref string crop,
+    string frame_text
+    )
+{
+    if ( frame_text.endsWith( "tl" ) )
+    {
+        gravity = "NorthWest";
+        crop = frame_text[ 0 .. $ - 2 ];
+    }
+    else if ( frame_text.endsWith( "t" ) )
+    {
+        gravity = "North";
+        crop = frame_text[ 0 .. $ - 1 ];
+    }
+    else if ( frame_text.endsWith( "tr" ) )
+    {
+        gravity = "NorthEast";
+        crop = frame_text[ 0 .. $ - 2 ];
+    }
+    else if ( frame_text.endsWith( "l" ) )
+    {
+        gravity = "West";
+        crop = frame_text[ 0 .. $ - 1 ];
+    }
+    else if ( frame_text.endsWith( "c" ) )
+    {
+        gravity = "Center";
+        crop = frame_text[ 0 .. $ - 1 ];
+    }
+    else if ( frame_text.endsWith( "r" ) )
+    {
+        gravity = "East";
+        crop = frame_text[ 0 .. $ - 1 ];
+    }
+    else if ( frame_text.endsWith( "bl" ) )
+    {
+        gravity = "SouthWest";
+        crop = frame_text[ 0 .. $ - 2 ];
+    }
+    else if ( frame_text.endsWith( "b" ) )
+    {
+        gravity = "South";
+        crop = frame_text[ 0 .. $ - 1 ];
+    }
+    else if ( frame_text.endsWith( "br" ) )
+    {
+        gravity = "SouthEast";
+        crop = frame_text[ 0 .. $ - 2 ];
+    }
+    else
+    {
+        gravity = "";
+        crop = "";
+    }
+}
+
+// ~~
+
 string GetFileExtensionFromCommandCode(
     char command_code
     )
@@ -541,6 +609,20 @@ CONFIGURATION[] ReadConfigurationArray(
                     {
                         configuration.DefaultRatio = GetRatio( argument_array[ 0 ] );
                     }
+                    else if ( command_name == "default-frame"
+                              && argument_array.length == 1 )
+                    {
+                        GetGravityAndCrop(
+                            configuration.DefaultGravity,
+                            configuration.DefaultCrop,
+                            argument_array[ 0 ]
+                            );
+                    }
+                    else if ( command_name == "default-ratio"
+                              && argument_array.length == 1 )
+                    {
+                        configuration.DefaultRatio = GetRatio( argument_array[ 0 ] );
+                    }
                     else if ( command_name == "default-sizes"
                               && argument_array.length == 1 )
                     {
@@ -567,10 +649,6 @@ CONFIGURATION[] ReadConfigurationArray(
                     }
                 }
             }
-        }
-        if ( configuration_array.length > 0 )
-        {
-            configuration_array[ $ - 1 ].Dump();
         }
     }
 
@@ -674,6 +752,8 @@ void GenerateImage(
     string target_file_extension,
     string target_size,
     double target_ratio,
+    string target_gravity,
+    string target_crop,
     string target_quality,
     CONFIGURATION configuration
     )
@@ -793,6 +873,23 @@ void GenerateImage(
             }
         }
 
+        if ( target_gravity != "" )
+        {
+            command
+                ~= " -gravity "
+                   ~ target_gravity;
+        }
+
+        if ( target_crop != "" )
+        {
+            command
+                ~= " -crop "
+                   ~ target_crop
+                   ~ " +repage"
+                   ~ " -extent "
+                   ~ target_crop;
+        }
+
         command
             ~= " -resize "
                ~ target_dimension;
@@ -851,6 +948,8 @@ void ProcessSourceFile(
         target_file_name,
         target_file_path,
         target_folder_path,
+        target_crop,
+        target_gravity,
         target_quality,
         target_size_format;
     string[]
@@ -866,6 +965,8 @@ void ProcessSourceFile(
     }
 
     target_ratio = configuration.DefaultRatio;
+    target_gravity = configuration.DefaultGravity;
+    target_crop = configuration.DefaultCrop;
 
     for ( command_index = 0;
           command_index < command_array.length;
@@ -886,6 +987,14 @@ void ProcessSourceFile(
         else if ( command_code == 'r' )
         {
             target_ratio = GetRatio( command[ 1 .. $ ] );
+        }
+        else if ( command_code == 'f' )
+        {
+            GetGravityAndCrop(
+                target_gravity,
+                target_crop,
+                command[ 1 .. $ ]
+                );
         }
         else if ( command_code == 'o' )
         {
@@ -930,6 +1039,8 @@ void ProcessSourceFile(
                         target_file_extension,
                         target_size,
                         target_ratio,
+                        target_gravity,
+                        target_crop,
                         target_quality,
                         configuration
                         );
