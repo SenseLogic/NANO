@@ -885,9 +885,7 @@ void GenerateImage(
             command
                 ~= " -crop "
                    ~ target_crop
-                   ~ " +repage"
-                   ~ " -extent "
-                   ~ target_crop;
+                   ~ " +repage";
         }
 
         command

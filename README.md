@@ -70,7 +70,7 @@ The first character of a command can be :
 *   **@** `<definition name>` : use a named command list
 *   **@** : use the default command list
 *   **o** : copy the original source file
-*   **r** `<ratio>` : define the surface aspect ratio
+*   **r** `<ratio>` : define the aspect ratio
 *   **f** `<frame>` : define the cropping frame
 *   **a** : generate .avif files
 *   **h** : generate .heic files
@@ -96,11 +96,11 @@ In both cases, the image original aspect ratio will be preserved.
 
 An image generation command can also have a custom target quality list, put after **@**.
 
-## Cropping frame
+## Image frame
 
-*   <width>x<height>[{+-}<horizontal offset>{+-}<vertical offset>][<origin>]
+*   <width>x<height>{+-}<horizontal offset>{+-}<vertical offset><origin>
 
-## Cropping frame origin
+## Image origin
 
 *   tl : top left
 *   t : top

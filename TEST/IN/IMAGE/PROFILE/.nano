@@ -5,3 +5,6 @@ default-commands am6
 
 for *.webp
 default-commands f720x1024+0+0c.am6
+
+for *_cropped.png
+default-commands am6
