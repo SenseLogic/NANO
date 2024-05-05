@@ -4,7 +4,7 @@ for profile_17.jpg *_18.jpg
 default-commands am6
 
 for *.webp
-default-commands f720x1024+0+0c.am6
+default-commands f16_9c.am6
 
 for *_cropped.png
 default-commands am6

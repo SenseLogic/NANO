@@ -49,7 +49,7 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 --sizes <name> <size list>
 --qualities <name> <quality list>
 --commands <name> <command list>
---default-ratio <ratio>
+--default-surface-ratio <ratio>
 --default-sizes <size list>
 --default-qualities <quality list> (default: 80)
 --default-commands <command list>
@@ -70,8 +70,8 @@ The first character of a command can be :
 *   **@** `<definition name>` : use a named command list
 *   **@** : use the default command list
 *   **o** : copy the original source file
-*   **r** `<ratio>` : define the aspect ratio
-*   **f** `<frame>` : define the cropping frame
+*   **c** `<ratio><gravity>` : define the cropping ratio and gravity
+*   **r** `<ratio>` : define the maximum surface ratio
 *   **a** : generate .avif files
 *   **h** : generate .heic files
 *   **j** : generate .jpg files
@@ -83,22 +83,28 @@ In image generation commands, the next characters specify the target size list :
 
 *   `<size>`,`<size>`,...
 
-
-Those letters stand for : **N**ano, **T**iny, **S**mall, **C**ompact, **M**edium, **L**arge, **B**ig, **H**uge, **F**ull, **U**ltra.
-
 Width lists can be added or changed using the `--sizes` option.
+
+For named width lists, the usual prefix letters are :
+
+*   **N**ano
+*   **T**iny
+*   **S**mall
+*   **C**ompact
+*   **M**edium
+*   **L**arge
+*   **B**ig
+*   **H**uge
+*   **F**ull
+*   **U**ltra
 
 By default, the image will be resized to match the required size.
 
-Alternatively, if a ratio is specified, the image will be resized to match the amount of pixels of an image with this size and aspect ratio.
+Alternatively, if a maximum surface ratio is specified, the image will be resized to match the amount of pixels of an image with this size and aspect ratio.
 
 In both cases, the image original aspect ratio will be preserved.
 
 An image generation command can also have a custom target quality list, put after **@**.
-
-## Image frame
-
-*   <width>x<height>{+-}<horizontal offset>{+-}<vertical offset><origin>
 
 ## Image origin
 
