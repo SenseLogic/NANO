@@ -38,7 +38,7 @@ bool
 string
     SourceFolderPath,
     TargetFolderPath,
-    ToolPath;
+    ConvertToolPath;
 
 // -- TYPES
 
@@ -842,7 +842,7 @@ void GenerateImage(
         writeln( "Writing file : ", target_file_path );
 
         command
-            = ToolPath.GetPhysicalPath()
+            = ConvertToolPath.GetPhysicalPath()
               ~ " \""
               ~ source_file_path.GetPhysicalPath()
               ~ "\"";
@@ -915,7 +915,7 @@ void GenerateImage(
                ~ target_file_path.GetPhysicalPath()
                ~ "\"";
 
-        writeln( "Running command : ", command );
+        writeln( "Running : ", command );
 
         try
         {
@@ -1160,7 +1160,7 @@ void main(
 
     argument_array = argument_array[ 1 .. $ ];
 
-    ToolPath = "convert";
+    ConvertToolPath = "convert";
     RecursiveOptionIsEnabled = false;
     KeepOptionIsEnabled = false;
     SourceFolderPath = "";
@@ -1193,10 +1193,10 @@ void main(
             configuration_text ~= option ~ " " ~ argument_array[ 0 ] ~ "\n";
             argument_array = argument_array[ 1 .. $ ];
         }
-        else if ( option == "--tool-path"
+        else if ( option == "--convert-tool-path"
                   && argument_array.length >= 1 )
         {
-            ToolPath = argument_array[ 0 ];
+            ConvertToolPath = argument_array[ 0 ];
             argument_array = argument_array[ 1 .. $ ];
         }
         else if ( option == "--recursive" )
@@ -1243,7 +1243,7 @@ void main(
         writeln( "    --default-qualities <quality list>" );
         writeln( "    --default-commands <command list>" );
         writeln( "    --default-name <image name format>" );
-        writeln( "    --tool-path <tool path>" );
+        writeln( "    --convert-tool-path <convert tool path>" );
         writeln( "    --recursive" );
         writeln( "    --keep" );
 

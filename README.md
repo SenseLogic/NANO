@@ -55,7 +55,7 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 --default-qualities <quality list> (default: 80)
 --default-commands <command list>
 --default-name <image name format> (default: {l}.{e}.{s}.{x})
---tool-path <tool path>
+--convert-tool-path <convert tool path>
 --recursive
 --keep
 ```
@@ -170,6 +170,8 @@ The origin suffix can be :
 *   b : bottom
 *   br : bottom right
 
+The cropped image size might be smaller than requested if not enough width or height is available.
+
 ## Image command
 
 The first character of an image command can be :
@@ -220,8 +222,9 @@ It can contain the following statements :
 *   default-commands <command list>
 *   default-name <image name format>
 
-Image generation settings are built in order using the following sources :
+Image generation settings are built from the following sources :
 
+*   Application arguments
 *   Application configuration file : .nano
 *   Image parent folders configuration file : .nano
 *   Image folder configuration file : .nano
@@ -257,16 +260,16 @@ The target file name format can be specified using the following letters :
 ### Command line
 
 ```csh
-nano --default-commands r16_9.a1920@70 --default-name @l.@x --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+nano --default-commands r16_9.a1920@70 --default-name @l.@x --convert-tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
 ```csh
-nano --default-qualities 75,70,65,60 --default-commands r16_9.am@10.al4 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+nano --default-qualities 75,70,65,60 --default-commands r16_9.am@10.al4 --convert-tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
 ```csh
 nano --sizes m5 640,1280,1920,2560,3200 --commands m5 ac@10.am5 --commands sm5 r16_9.ac@10.am5
-     --default-qualities 80 --default-commands @m5 --tool-path "convert" --recursive --keep SOURCE/ TARGET/
+     --default-qualities 80 --default-commands @m5 --convert-tool-path "convert" --recursive --keep SOURCE/ TARGET/
 ```
 
 ## Dependencies
