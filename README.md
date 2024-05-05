@@ -49,6 +49,7 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 --sizes <name> <size list>
 --qualities <name> <quality list>
 --commands <name> <command list>
+--default-cropping-ratio <ratio>
 --default-surface-ratio <ratio>
 --default-sizes <size list>
 --default-qualities <quality list> (default: 80)
@@ -71,7 +72,7 @@ The first character of a command can be :
 *   **@** : use the default command list
 *   **o** : copy the original source file
 *   **c** `<ratio><gravity>` : define the cropping ratio and gravity
-*   **r** `<ratio>` : define the maximum surface ratio
+*   **#** `<ratio>` : define the maximum surface ratio
 *   **a** : generate .avif files
 *   **h** : generate .heic files
 *   **j** : generate .jpg files
@@ -85,18 +86,18 @@ In image generation commands, the next characters specify the target size list :
 
 Width lists can be added or changed using the `--sizes` option.
 
-For named width lists, the usual prefix letters are :
+For named width lists, usual prefix letters are :
 
-*   **N**ano
-*   **T**iny
-*   **S**mall
-*   **C**ompact
-*   **M**edium
-*   **L**arge
-*   **B**ig
-*   **H**uge
-*   **F**ull
-*   **U**ltra
+*   n : **N**ano
+*   t : **T**iny
+*   s : **S**mall
+*   c : **C**ompact
+*   m : **M**edium
+*   l : **L**arge
+*   b : **B**ig
+*   h : **H**uge
+*   f : **F**ull
+*   u : **U**ltra
 
 By default, the image will be resized to match the required size.
 

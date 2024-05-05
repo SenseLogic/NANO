@@ -773,7 +773,7 @@ void GenerateImage(
     string[]
         target_size_part_array;
 
-    target_size_part_array = target_size.split( 'r' );
+    target_size_part_array = target_size.split( '#' );
 
     if ( target_size_part_array.length == 2 )
     {
@@ -999,7 +999,7 @@ void ProcessSourceFile(
                 command[ 1 .. $ ]
                 );
         }
-        else if ( command_code == 'r' )
+        else if ( command_code == '#' )
         {
             target_surface_ratio = GetRatio( command[ 1 .. $ ] );
         }
