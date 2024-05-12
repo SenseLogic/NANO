@@ -27,6 +27,7 @@ import std.file : copy, dirEntries, exists, getTimes, mkdirRecurse, readText, th
 import std.path : absolutePath, globMatch;
 import std.process : executeShell;
 import std.range : empty;
+import std.regex : match, regex;
 import std.stdio : writeln, File;
 import std.string : endsWith, indexOf, join, lastIndexOf, replace, split, startsWith, strip;
 
@@ -101,9 +102,6 @@ class CONFIGURATION
         string filter
         )
     {
-        bool
-            folder_path_filter_is_absolute,
-            folder_path_filter_is_recursive;
         string
             file_name,
             file_name_filter,
@@ -113,39 +111,43 @@ class CONFIGURATION
         folder_path = file_path.GetFolderPath();
         file_name = file_path.GetFileName();
 
-        folder_path_filter = filter.GetFolderPath();
-        folder_path_filter_is_absolute = folder_path_filter.startsWith( '/' );
-        folder_path_filter_is_recursive = folder_path_filter.endsWith( "//" );
-        file_name_filter = filter.GetFileName();
-
-        if ( folder_path_filter != "" )
+        if ( !folder_path.startsWith( FolderPath ) )
         {
-            if ( folder_path_filter_is_absolute )
-            {
-                folder_path_filter = FolderPath ~ folder_path_filter[ 1 .. $ ];
-
-                if ( ( folder_path_filter_is_recursive
-                       && !folder_path.startsWith( folder_path_filter ) )
-                     || ( !folder_path_filter_is_recursive
-                          && folder_path != folder_path_filter ) )
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                if ( !folder_path.startsWith( FolderPath )
-                     || ( folder_path_filter_is_recursive
-                          && ( "/" ~ folder_path ).indexOf( "/" ~ folder_path_filter ) < 0 )
-                     || ( !folder_path_filter_is_recursive
-                          && ( "/" ~ folder_path ).endsWith( "/" ~ folder_path_filter ) ) )
-                {
-                    return false;
-                }
-            }
+            return false;
         }
+        else
+        {
+            folder_path_filter = filter.GetFolderPath();
+            file_name_filter = filter.GetFileName();
 
-        return file_name.globMatch( file_name_filter );
+            if ( folder_path_filter != "" )
+            {
+                foreach ( special_character; "^$.|?*+()[]{}#".split( "" ) )
+                {
+                    folder_path_filter = folder_path_filter.replace( special_character, "\\" ~ special_character );
+                }
+
+                if ( folder_path_filter.startsWith( '/' ) )
+                {
+                    folder_path_filter = FolderPath ~ folder_path_filter[ 1 .. $ ];
+                }
+                else
+                {
+                    folder_path_filter = FolderPath ~ "(.+?/)?" ~ folder_path_filter;
+                }
+
+                folder_path_filter = folder_path_filter.replace( "//", "/(.+?/)?" );
+
+                if ( !folder_path.match( regex( "^" ~ folder_path_filter ~ "$" ) ) )
+                {
+                    return false;
+                }
+            }
+
+            return
+                file_name_filter == ""
+                || file_name.globMatch( file_name_filter );
+        }
     }
 
     // ~~
@@ -668,7 +670,7 @@ CONFIGURATION GetSourceFileConfiguration(
 
     foreach ( file_configuration; file_configuration_array )
     {
-        if ( file_configuration.MatchesFilePath( source_file_path ) )
+        if ( file_configuration.MatchesFilePath( source_file_path[ SourceFolderPath.length .. $ ] ) )
         {
             foreach ( name, size_array; file_configuration.SizeArrayByNameMap )
             {
