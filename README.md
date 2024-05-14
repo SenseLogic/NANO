@@ -62,15 +62,15 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 
 ## Image size
 
-*   <factor>%
-*   <factor>x
-*   <width>x<height>
-*   <width>
-*   <width>w
-*   <height>h
-*   <width>#<maximum surface ratio>
-*   <width>w#<maximum surface ratio>
-*   <height>h#<maximum surface ratio>
+*   `<factor>%`
+*   `<factor>x`
+*   `<width>x<height>`
+*   `<width>`
+*   `<width>w`
+*   `<height>h`
+*   `<width>#<maximum surface ratio>`
+*   `<width>w#<maximum surface ratio>`
+*   `<height>h#<maximum surface ratio>`
 
 ## Image size lists
 
