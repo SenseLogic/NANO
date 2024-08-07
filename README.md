@@ -54,7 +54,7 @@ nano [`<option>` ...] `<source folder path>` `<target folder path>`
 --default-sizes <size list>
 --default-qualities <quality list> (default: 80)
 --default-commands <command list>
---default-name <image name format> (default: {l}.{e}.{s}.{x})
+--default-name <image name format> (default: {l}.{s}.{x})
 --convert-tool-path <convert tool path>
 --recursive
 --keep
