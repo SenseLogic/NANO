@@ -119,9 +119,15 @@ The following size lists are predefined :
 *   b3 : 1280,2560,3840
 *   h : 1600
 *   h2 : 1600,3200
+*   h3 : 1600,3200,4800
 *   f : 1920
 *   f2 : 1920,3840
+*   f3 : 1920,3840,5760
+*   w : 2560
+*   w2 : 2560,3200
+*   w3 : 2560,3200,3840
 *   u : 3840
+*   u2 : 3840,5120
 
 They use the following prefixes :
 
@@ -134,6 +140,7 @@ They use the following prefixes :
 *   b : **B**ig
 *   h : **H**uge
 *   f : **F**ull (HD)
+*   w : **W**ide
 *   u : **U**ltra (4K)
 
 ## Image quality

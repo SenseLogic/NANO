@@ -35,7 +35,8 @@ import std.string : endsWith, indexOf, join, lastIndexOf, replace, split, starts
 
 bool
     KeepOptionIsEnabled,
-    RecursiveOptionIsEnabled;
+    RecursiveOptionIsEnabled,
+    VerboseOptionIsEnabled;
 string
     SourceFolderPath,
     TargetFolderPath,
@@ -79,20 +80,21 @@ class CONFIGURATION
     // -- INQUIRIES
 
     void Dump(
+        string indentation = ""
         )
     {
-        writeln( "FolderPath: ", FolderPath );
-        writeln( "FilterArray: ", FilterArray );
-        writeln( "SizeArrayByNameMap: ", SizeArrayByNameMap );
-        writeln( "QualityArrayByNameMap: ", QualityArrayByNameMap );
-        writeln( "CommandArrayByNameMap: ", CommandArrayByNameMap );
-        writeln( "DefaultSurfaceRatio: ", DefaultSurfaceRatio );
-        writeln( "DefaultSizeRatio: ", DefaultSizeRatio );
-        writeln( "DefaultCroppingOrigin: ", DefaultCroppingOrigin );
-        writeln( "DefaultSizeArray: ", DefaultSizeArray );
-        writeln( "DefaultQualityArray: ", DefaultQualityArray );
-        writeln( "DefaultCommandArray: ", DefaultCommandArray );
-        writeln( "DefaultName: ", DefaultName );
+        writeln( indentation, "FolderPath: ", FolderPath );
+        writeln( indentation, "FilterArray: ", FilterArray );
+        writeln( indentation, "SizeArrayByNameMap: ", SizeArrayByNameMap );
+        writeln( indentation, "QualityArrayByNameMap: ", QualityArrayByNameMap );
+        writeln( indentation, "CommandArrayByNameMap: ", CommandArrayByNameMap );
+        writeln( indentation, "DefaultSurfaceRatio: ", DefaultSurfaceRatio );
+        writeln( indentation, "DefaultSizeRatio: ", DefaultSizeRatio );
+        writeln( indentation, "DefaultCroppingOrigin: ", DefaultCroppingOrigin );
+        writeln( indentation, "DefaultSizeArray: ", DefaultSizeArray );
+        writeln( indentation, "DefaultQualityArray: ", DefaultQualityArray );
+        writeln( indentation, "DefaultCommandArray: ", DefaultCommandArray );
+        writeln( indentation, "DefaultName: ", DefaultName );
     }
 
     // ~~
@@ -180,14 +182,24 @@ class CONFIGURATION
         string size_format
         )
     {
+        string[]
+            size_array;
+
         if ( size_format in SizeArrayByNameMap )
         {
-            return SizeArrayByNameMap[ size_format ];
+            size_array = SizeArrayByNameMap[ size_format ];
         }
         else
         {
-            return size_format.split( ',' );
+            size_array = size_format.split( ',' );
+
+            if ( size_array.length == 0 )
+            {
+                size_array = DefaultSizeArray;
+            }
         }
+
+        return size_array;
     }
 
     // ~~
@@ -776,6 +788,11 @@ void GenerateImage(
     string[]
         target_size_part_array;
 
+    if ( VerboseOptionIsEnabled )
+    {
+        writeln( "Target size : ", target_size );
+    }
+
     target_size_part_array = target_size.split( '#' );
 
     if ( target_size_part_array.length == 2 )
@@ -824,6 +841,13 @@ void GenerateImage(
         target_dimension = target_width ~ "x";
     }
 
+    if ( VerboseOptionIsEnabled )
+    {
+        writeln( "Target width : ", target_width );
+        writeln( "Target height : ", target_height );
+        writeln( "Target dimension : ", target_dimension );
+    }
+
     target_file_name
         = configuration.GetTargetFileName(
               source_file_label,
@@ -863,6 +887,11 @@ void GenerateImage(
 
         if ( target_surface_ratio > 0.0 )
         {
+            if ( VerboseOptionIsEnabled )
+            {
+                writeln( "Target surface ratio : ", target_surface_ratio );
+            }
+
             if ( target_width != "" )
             {
                 real_target_width = target_width.to!double();
@@ -875,12 +904,22 @@ void GenerateImage(
             }
         }
 
+        if ( VerboseOptionIsEnabled )
+        {
+            writeln( "Target dimension : ", target_dimension );
+        }
+
         command
             ~= " -resize "
                ~ target_dimension;
 
         if ( target_size_ratio > 0.0 )
         {
+            if ( VerboseOptionIsEnabled )
+            {
+                writeln( "Target size ratio : ", target_size_ratio );
+            }
+
             if ( target_width != "" )
             {
                 target_cropping
@@ -894,6 +933,12 @@ void GenerateImage(
                     = ( target_height.to!double() * target_size_ratio ).to!long().to!string()
                       ~ "x"
                       ~ target_height;
+            }
+
+            if ( VerboseOptionIsEnabled )
+            {
+                writeln( "Target size origin : ", target_size_origin );
+                writeln( "Target cropping : ", target_cropping );
             }
 
             command
@@ -910,9 +955,15 @@ void GenerateImage(
                 ~= " -interlace Plane";
         }
 
+        if ( VerboseOptionIsEnabled )
+        {
+            writeln( "Target quality : ", target_quality );
+        }
+
         command
             ~= " -quality "
                ~ target_quality
+               ~ " -filter Lanczos "
                ~ " -strip \""
                ~ target_file_path.GetPhysicalPath()
                ~ "\"";
@@ -978,6 +1029,12 @@ void ProcessSourceFile(
     target_size_ratio = configuration.DefaultSizeRatio;
     target_size_origin = configuration.DefaultCroppingOrigin;
 
+    if ( VerboseOptionIsEnabled )
+    {
+        writeln( "Configuration :" );
+        configuration.Dump( "    " );
+    }
+
     for ( command_index = 0;
           command_index < command_array.length;
           ++command_index )
@@ -1026,6 +1083,12 @@ void ProcessSourceFile(
             else
             {
                 target_quality_array = configuration.DefaultQualityArray;
+            }
+
+            if ( VerboseOptionIsEnabled )
+            {
+                writeln( "Target size array : ", target_size_array );
+                writeln( "Target quality array : ", target_quality_array );
             }
 
             if ( !target_size_array.empty )
@@ -1165,6 +1228,7 @@ void main(
     ConvertToolPath = "convert";
     RecursiveOptionIsEnabled = false;
     KeepOptionIsEnabled = false;
+    VerboseOptionIsEnabled = false;
     SourceFolderPath = "";
     TargetFolderPath = "";
 
@@ -1181,7 +1245,7 @@ void main(
                || option == "--commands" )
                && argument_array.length >= 2 )
         {
-            configuration_text ~= option ~ " " ~ argument_array[ 0 .. 1 ].join( ' '  ) ~ "\n";
+            configuration_text ~= option[ 2 .. $ ] ~ " " ~ argument_array[ 0 .. 1 ].join( ' '  ) ~ "\n";
             argument_array = argument_array[ 2 .. $ ];
         }
         else if ( ( option == "--default-ratio"
@@ -1192,7 +1256,7 @@ void main(
                     || option == "--default-name" )
                   && argument_array.length >= 1 )
         {
-            configuration_text ~= option ~ " " ~ argument_array[ 0 ] ~ "\n";
+            configuration_text ~= option[ 2 .. $ ] ~ " " ~ argument_array[ 0 ] ~ "\n";
             argument_array = argument_array[ 1 .. $ ];
         }
         else if ( option == "--convert-tool-path"
@@ -1209,6 +1273,10 @@ void main(
         {
             KeepOptionIsEnabled = true;
         }
+        else if ( option == "--verbose" )
+        {
+            VerboseOptionIsEnabled = true;
+        }
         else
         {
             break;
@@ -1219,36 +1287,36 @@ void main(
     {
         SourceFolderPath = argument_array[ 0 ].GetLogicalPath();
         TargetFolderPath = argument_array[ 1 ].GetLogicalPath();
+
+        if ( SourceFolderPath.GetLogicalPath().endsWith( '/' )
+             && TargetFolderPath.GetLogicalPath().endsWith( '/' ) )
+        {
+            ProcessSourceFolder(
+                SourceFolderPath,
+                ReadConfigurationArray(
+                    GetApplicationFolderPath() ~ ".nano",
+                    ""
+                    )
+                );
+
+            return;
+        }
     }
 
-    if ( SourceFolderPath.GetLogicalPath().endsWith( '/' )
-         && TargetFolderPath.GetLogicalPath().endsWith( '/' ) )
-    {
-        ProcessSourceFolder(
-            SourceFolderPath,
-            ReadConfigurationArray(
-                GetApplicationFolderPath() ~ ".nano",
-                ""
-                )
-            );
-    }
-    else
-    {
-        writeln( "Usage :" );
-        writeln( "    nano [options] <source folder path> <target folder path>" );
-        writeln( "Options :" );
-        writeln( "    --sizes <name> <size list>" );
-        writeln( "    --qualities <name> <quality list>" );
-        writeln( "    --commands <name> <command list>" );
-        writeln( "    --default-surface-ratio <ratio>" );
-        writeln( "    --default-sizes <size list>" );
-        writeln( "    --default-qualities <quality list>" );
-        writeln( "    --default-commands <command list>" );
-        writeln( "    --default-name <image name format>" );
-        writeln( "    --convert-tool-path <convert tool path>" );
-        writeln( "    --recursive" );
-        writeln( "    --keep" );
+    writeln( "Usage :" );
+    writeln( "    nano [options] <source folder path> <target folder path>" );
+    writeln( "Options :" );
+    writeln( "    --sizes <name> <size list>" );
+    writeln( "    --qualities <name> <quality list>" );
+    writeln( "    --commands <name> <command list>" );
+    writeln( "    --default-surface-ratio <ratio>" );
+    writeln( "    --default-sizes <size list>" );
+    writeln( "    --default-qualities <quality list>" );
+    writeln( "    --default-commands <command list>" );
+    writeln( "    --default-name <image name format>" );
+    writeln( "    --convert-tool-path <convert tool path>" );
+    writeln( "    --recursive" );
+    writeln( "    --keep" );
 
-        Abort( "Invalid arguments : " ~ argument_array.to!string() );
-    }
+    Abort( "Invalid arguments : " ~ argument_array.to!string() );
 }
