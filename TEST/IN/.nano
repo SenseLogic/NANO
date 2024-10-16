@@ -1,33 +1,29 @@
-qualities m6 75,70,65,60,55,50
-commands n an4
-commands t an@10.at4
-commands c at@10.ac4
-commands s ac@10.as4
-commands m as@10.am4
-commands l am@10.al4
-commands b al@10.ab3
-commands h ab@10.ah2
-commands f ah@10.af2
-commands u af@10.au
-commands n16_9 #16_9.an4
-commands t16_9 #16_9.an@10.at4
-commands c16_9 #16_9.at@10.ac4
-commands s16_9 #16_9.ac@10.as4
-commands m16_9 #16_9.as@10.am4
-commands l16_9 #16_9.am@10.al4
-commands b16_9 #16_9.al@10.ab3
-commands h16_9 #16_9.ab@10.ah2
-commands f16_9 #16_9.ah@10.af2
-commands u16_9 #16_9.af@10.au
-default-sizes 640,1280,1920,2560,3200
-default-qualities 75,70,65,60,55,50
-default-commands al4
+qualities m5 75,70,65,60,55
+commands n an8
+commands t an@30.at7
+commands s at@30.as6
+commands m as@30.am5
+commands w am@30.aw4
+commands l al@30.al3
+commands b ab@30.ab2
+commands h aw@30.ah
+commands n1_2 f1_2.an8
+commands t1_2 f1_2.an@30.at7
+commands s1_2 f1_2.at@30.as6
+commands m1_2 f1_2.as@30.am5
+commands w1_2 f1_2.am@30.aw4
+commands l1_2 f1_2.aw@30.al3
+commands b1_2 f1_2.al@30.ab2
+commands h1_2 f1_2.ab@30.ah
+default-sizes 360,480,640,960,1280,1920,2560,3840
+default-qualities 30,55,55,55,55,55,55,55
+default-commands al3
 
 for LOCATION/*.webp
-default-commands au
+default-commands ah
 
 for LOCATION//*.webp
-default-commands af
+default-commands al
 
 for /IMAGE//OUTSIDE/
-default-commands ah
+default-commands aw

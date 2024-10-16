@@ -57,8 +57,8 @@ class CONFIGURATION
         QualityArrayByNameMap,
         CommandArrayByNameMap;
     double
-        DefaultSurfaceRatio,
-        DefaultSizeRatio;
+        DefaultFramingRatio,
+        DefaultCroppingRatio;
     string
         DefaultCroppingOrigin;
     string[]
@@ -73,8 +73,8 @@ class CONFIGURATION
     this(
         )
     {
-        DefaultSurfaceRatio = -1;
-        DefaultSizeRatio = -1;
+        DefaultFramingRatio = -1;
+        DefaultCroppingRatio = -1;
     }
 
     // -- INQUIRIES
@@ -88,8 +88,8 @@ class CONFIGURATION
         writeln( indentation, "SizeArrayByNameMap: ", SizeArrayByNameMap );
         writeln( indentation, "QualityArrayByNameMap: ", QualityArrayByNameMap );
         writeln( indentation, "CommandArrayByNameMap: ", CommandArrayByNameMap );
-        writeln( indentation, "DefaultSurfaceRatio: ", DefaultSurfaceRatio );
-        writeln( indentation, "DefaultSizeRatio: ", DefaultSizeRatio );
+        writeln( indentation, "DefaultFramingRatio: ", DefaultFramingRatio );
+        writeln( indentation, "DefaultCroppingRatio: ", DefaultCroppingRatio );
         writeln( indentation, "DefaultCroppingOrigin: ", DefaultCroppingOrigin );
         writeln( indentation, "DefaultSizeArray: ", DefaultSizeArray );
         writeln( indentation, "DefaultQualityArray: ", DefaultQualityArray );
@@ -473,64 +473,64 @@ double GetRatio(
 
 // ~~
 
-void GetSizeRatioAndOrigin(
-    ref double size_ratio,
-    ref string size_origin,
+void GetCroppingRatioAndOrigin(
+    ref double cropping_ratio,
+    ref string cropping_origin,
     string cropping
     )
 {
     if ( cropping.endsWith( "tl" ) )
     {
-        size_origin = "NorthWest";
+        cropping_origin = "NorthWest";
         cropping = cropping[ 0 .. $ - 2 ];
     }
     else if ( cropping.endsWith( "t" ) )
     {
-        size_origin = "North";
+        cropping_origin = "North";
         cropping = cropping[ 0 .. $ - 1 ];
     }
     else if ( cropping.endsWith( "tr" ) )
     {
-        size_origin = "NorthEast";
+        cropping_origin = "NorthEast";
         cropping = cropping[ 0 .. $ - 2 ];
     }
     else if ( cropping.endsWith( "l" ) )
     {
-        size_origin = "West";
+        cropping_origin = "West";
         cropping = cropping[ 0 .. $ - 1 ];
     }
     else if ( cropping.endsWith( "c" ) )
     {
-        size_origin = "Center";
+        cropping_origin = "Center";
         cropping = cropping[ 0 .. $ - 1 ];
     }
     else if ( cropping.endsWith( "r" ) )
     {
-        size_origin = "East";
+        cropping_origin = "East";
         cropping = cropping[ 0 .. $ - 1 ];
     }
     else if ( cropping.endsWith( "bl" ) )
     {
-        size_origin = "SouthWest";
+        cropping_origin = "SouthWest";
         cropping = cropping[ 0 .. $ - 2 ];
     }
     else if ( cropping.endsWith( "b" ) )
     {
-        size_origin = "South";
+        cropping_origin = "South";
         cropping = cropping[ 0 .. $ - 1 ];
     }
     else if ( cropping.endsWith( "br" ) )
     {
-        size_origin = "SouthEast";
+        cropping_origin = "SouthEast";
         cropping = cropping[ 0 .. $ - 2 ];
     }
     else
     {
-        size_origin = "";
+        cropping_origin = "";
         cropping = "";
     }
 
-    size_ratio = GetRatio( cropping );
+    cropping_ratio = GetRatio( cropping );
 }
 
 // ~~
@@ -622,19 +622,19 @@ CONFIGURATION[] ReadConfigurationArray(
                     {
                         configuration.CommandArrayByNameMap[ argument_array[ 0 ] ] = argument_array[ 1 ].split( '.' );
                     }
-                    else if ( command_name == "default-ratio"
+                    else if ( command_name == "default-cropping-ratio"
                               && argument_array.length == 1 )
                     {
-                        GetSizeRatioAndOrigin(
-                            configuration.DefaultSizeRatio,
+                        GetCroppingRatioAndOrigin(
+                            configuration.DefaultCroppingRatio,
                             configuration.DefaultCroppingOrigin,
                             argument_array[ 0 ]
                             );
                     }
-                    else if ( command_name == "default-surface-ratio"
+                    else if ( command_name == "default-framing-ratio"
                               && argument_array.length == 1 )
                     {
-                        configuration.DefaultSurfaceRatio = GetRatio( argument_array[ 0 ] );
+                        configuration.DefaultFramingRatio = GetRatio( argument_array[ 0 ] );
                     }
                     else if ( command_name == "default-sizes"
                               && argument_array.length == 1 )
@@ -699,9 +699,9 @@ CONFIGURATION GetSourceFileConfiguration(
                 source_file_configuration.CommandArrayByNameMap[ name ] = size_array;
             }
 
-            if ( file_configuration.DefaultSurfaceRatio >= 0.0 )
+            if ( file_configuration.DefaultFramingRatio >= 0.0 )
             {
-                source_file_configuration.DefaultSurfaceRatio = file_configuration.DefaultSurfaceRatio;
+                source_file_configuration.DefaultFramingRatio = file_configuration.DefaultFramingRatio;
             }
 
             if ( file_configuration.DefaultSizeArray.length > 0 )
@@ -764,9 +764,9 @@ void GenerateImage(
     string target_folder_path,
     string target_file_extension,
     string target_size,
-    double target_surface_ratio,
-    double target_size_ratio,
-    string target_size_origin,
+    double target_framing_ratio,
+    double target_cropping_ratio,
+    string target_cropping_origin,
     string target_quality,
     CONFIGURATION configuration
     )
@@ -797,7 +797,7 @@ void GenerateImage(
 
     if ( target_size_part_array.length == 2 )
     {
-        target_surface_ratio = GetRatio( target_size_part_array[ 2 ] );
+        target_framing_ratio = GetRatio( target_size_part_array[ 2 ] );
         target_size = target_size_part_array[ 0 ];
     }
 
@@ -885,22 +885,22 @@ void GenerateImage(
                 ~= " -background white -alpha remove -alpha off";
         }
 
-        if ( target_surface_ratio > 0.0 )
+        if ( target_framing_ratio > 0.0 )
         {
             if ( VerboseOptionIsEnabled )
             {
-                writeln( "Target surface ratio : ", target_surface_ratio );
+                writeln( "Target framing ratio : ", target_framing_ratio );
             }
 
             if ( target_width != "" )
             {
                 real_target_width = target_width.to!double();
-                target_dimension = ( real_target_width * real_target_width / target_surface_ratio ).to!long().to!string() ~ "@";
+                target_dimension = target_width ~ "x" ~ ( real_target_width / target_framing_ratio ).to!long().to!string();
             }
             else if ( target_height != "" )
             {
                 real_target_height = target_height.to!double();
-                target_dimension = ( real_target_height * real_target_height * target_surface_ratio ).to!long().to!string() ~ "@";
+                target_dimension = ( real_target_height * target_framing_ratio ).to!long().to!string() ~ "x" ~ target_height;
             }
         }
 
@@ -913,11 +913,11 @@ void GenerateImage(
             ~= " -resize "
                ~ target_dimension;
 
-        if ( target_size_ratio > 0.0 )
+        if ( target_cropping_ratio > 0.0 )
         {
             if ( VerboseOptionIsEnabled )
             {
-                writeln( "Target size ratio : ", target_size_ratio );
+                writeln( "Target cropping ratio : ", target_cropping_ratio );
             }
 
             if ( target_width != "" )
@@ -925,25 +925,25 @@ void GenerateImage(
                 target_cropping
                     = target_width
                       ~ "x"
-                      ~ ( target_width.to!double() / target_size_ratio ).to!long().to!string();
+                      ~ ( target_width.to!double() / target_cropping_ratio ).to!long().to!string();
             }
             else if ( target_height != "" )
             {
                 target_cropping
-                    = ( target_height.to!double() * target_size_ratio ).to!long().to!string()
+                    = ( target_height.to!double() * target_cropping_ratio ).to!long().to!string()
                       ~ "x"
                       ~ target_height;
             }
 
             if ( VerboseOptionIsEnabled )
             {
-                writeln( "Target size origin : ", target_size_origin );
+                writeln( "Target cropping origin : ", target_cropping_origin );
                 writeln( "Target cropping : ", target_cropping );
             }
 
             command
                 ~= " -gravity "
-                   ~ target_size_origin
+                   ~ target_cropping_origin
                    ~ " -crop "
                    ~ target_cropping
                    ~ "+0+0 +repage";
@@ -963,8 +963,7 @@ void GenerateImage(
         command
             ~= " -quality "
                ~ target_quality
-               ~ " -filter Lanczos "
-               ~ " -strip \""
+               ~ " -filter Lanczos -strip \""
                ~ target_file_path.GetPhysicalPath()
                ~ "\"";
 
@@ -999,8 +998,8 @@ void ProcessSourceFile(
     char
         command_code;
     double
-        target_surface_ratio,
-        target_size_ratio;
+        target_framing_ratio,
+        target_cropping_ratio;
     long
         command_index;
     string
@@ -1010,7 +1009,7 @@ void ProcessSourceFile(
         target_file_name,
         target_file_path,
         target_folder_path,
-        target_size_origin,
+        target_cropping_origin,
         target_quality,
         target_size_format;
     string[]
@@ -1025,9 +1024,9 @@ void ProcessSourceFile(
         command_array = configuration.DefaultCommandArray;
     }
 
-    target_surface_ratio = configuration.DefaultSurfaceRatio;
-    target_size_ratio = configuration.DefaultSizeRatio;
-    target_size_origin = configuration.DefaultCroppingOrigin;
+    target_framing_ratio = configuration.DefaultFramingRatio;
+    target_cropping_ratio = configuration.DefaultCroppingRatio;
+    target_cropping_origin = configuration.DefaultCroppingOrigin;
 
     if ( VerboseOptionIsEnabled )
     {
@@ -1051,17 +1050,17 @@ void ProcessSourceFile(
 
             --command_index;
         }
-        else if ( command_code == 'r' )
+        else if ( command_code == 'c' )
         {
-            GetSizeRatioAndOrigin(
-                target_size_ratio,
-                target_size_origin,
+            GetCroppingRatioAndOrigin(
+                target_cropping_ratio,
+                target_cropping_origin,
                 command[ 1 .. $ ]
                 );
         }
-        else if ( command_code == '#' )
+        else if ( command_code == 'f' )
         {
-            target_surface_ratio = GetRatio( command[ 1 .. $ ] );
+            target_framing_ratio = GetRatio( command[ 1 .. $ ] );
         }
         else if ( command_code == 'o' )
         {
@@ -1111,9 +1110,9 @@ void ProcessSourceFile(
                         target_folder_path,
                         target_file_extension,
                         target_size,
-                        target_surface_ratio,
-                        target_size_ratio,
-                        target_size_origin,
+                        target_framing_ratio,
+                        target_cropping_ratio,
+                        target_cropping_origin,
                         target_quality,
                         configuration
                         );
@@ -1248,8 +1247,8 @@ void main(
             configuration_text ~= option[ 2 .. $ ] ~ " " ~ argument_array[ 0 .. 1 ].join( ' '  ) ~ "\n";
             argument_array = argument_array[ 2 .. $ ];
         }
-        else if ( ( option == "--default-ratio"
-                    || option == "--default-surface-ratio"
+        else if ( ( option == "--default-cropping-ratio"
+                    || option == "--default-framing-ratio"
                     || option == "--default-sizes"
                     || option == "--default-qualities"
                     || option == "--default-commands"
@@ -1309,7 +1308,8 @@ void main(
     writeln( "    --sizes <name> <size list>" );
     writeln( "    --qualities <name> <quality list>" );
     writeln( "    --commands <name> <command list>" );
-    writeln( "    --default-surface-ratio <ratio>" );
+    writeln( "    --default-cropping-ratio <ratio><origin>" );
+    writeln( "    --default-framing-ratio <ratio>" );
     writeln( "    --default-sizes <size list>" );
     writeln( "    --default-qualities <quality list>" );
     writeln( "    --default-commands <command list>" );

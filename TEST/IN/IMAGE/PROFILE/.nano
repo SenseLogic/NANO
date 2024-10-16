@@ -1,10 +1,10 @@
-default-commands al4
+default-commands al3
 
 for profile_17.jpg *_18.jpg
-default-commands am6
+default-commands am5
 
 for *.webp
-default-commands r4_3c.am6
+default-commands c4_3c.am5
 
 for *_cropped.png
-default-commands am6
+default-commands am5
